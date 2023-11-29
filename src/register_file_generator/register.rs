@@ -29,7 +29,7 @@ impl Field {
     pub fn create_set_method(&self, register_width: u8) -> String {
         format!(
             "\tinline bool set_{0}(uint{3}_t value) {{\n\
-            \t\tif (value >= (1 << ({2} - {1}))) {{\n\
+            \t\tif (value >= (1 << ({2} - ({1} - 1)))) {{\n\
             \t\t\treturn false;\n\
             \t\t}}\n\
             \t\tuint{3}_t mask = static_cast<uint{3}_t>(~((UINT{3}_MAX >> ({3} - 1 - ({2} - {1}))) << {1}));\n\
