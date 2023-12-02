@@ -328,6 +328,8 @@ Each filed needs to contain five keys. First, once again, is `name` which will b
 
 - There is nothing preventing overlapping register fields at the moment. I am debating whether or not to enforce this, as I imagine some niche registers may be somewhat polymorphic, and at the end of the day overlapping bit boundaries is a user error. However, the entire point of this project was to prevent user errors to a reasonable degree, so I may or may not implement this.
 
+- There is currently no testing in this project. I am still learning Rust, and have not read the documentation on testing yet. When I get some time to read the documentation, I will implement this.
+
 ## Planned Features
 
 - Add JSON schema enforcement.
