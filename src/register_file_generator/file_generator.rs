@@ -28,6 +28,15 @@ pub fn create_base_register_files(register_widths: &Vec<u8>, register_family: &S
             \tinline uint{0}_t get_register_value() const {{ return register_raw; }};\n\
             \tinline void clear_register_value() {{ register_raw = 0x0; }};\n\
             \tinline void set_register_value(uint{0}_t value) {{ register_raw = value; }};\n\
+            \tRegister{0} operator&(const uint{0}_t param) {{ Register{0} buff; buff.register_raw = register_raw & param; return buff; }};\n\
+            \tRegister{0} operator&(const Register{0} &param) {{ Register{0} buff; buff.register_raw = register_raw & param.register_raw; return buff; }};\n\
+            \tRegister{0} operator|(const uint{0}_t param) {{ Register{0} buff; buff.register_raw = register_raw | param; return buff; }};\n\
+            \tRegister{0} operator|(const Register{0} &param) {{ Register{0} buff; buff.register_raw = register_raw | param.register_raw; return buff; }};\n\
+            \tRegister{0} operator<<(const uint{0}_t param) {{ Register{0} buff; buff.register_raw = register_raw << param; return buff; }};\n\
+            \tRegister{0} operator<<(const Register{0} &param) {{ Register{0} buff; buff.register_raw = register_raw << param.register_raw; return buff; }};\n\
+            \tRegister{0} operator>>(const uint{0}_t param) {{ Register{0} buff; buff.register_raw = register_raw >> param; return buff; }};\n\
+            \tRegister{0} operator>>(const Register{0} &param) {{ Register{0} buff; buff.register_raw = register_raw >> param.register_raw; return buff; }};\n\
+            \tRegister{0} operator~() {{ Register{0} buff; buff.register_raw = ~register_raw; return buff; }};\n\
             protected:\n\
             \tuint{0}_t register_raw = 0x0;\n\
             }};\n",
