@@ -43,7 +43,11 @@ fn main() {
                 least_significant_bit: json_field["lsb"].as_u8().expect("Invalid lsb!"),
                 most_significant_bit: json_field["msb"].as_u8().expect("Invalid msb!"),
                 read: json_field["read"].as_bool().expect("Invalid read boolean!"),
-                write: json_field["write"].as_bool().expect("Invalid write boolean!")
+                write: json_field["write"].as_bool().expect("Invalid write boolean!"),
+                negative: match json_field["negative"].as_bool() {
+                    Some(set) => set,
+                    None => false,
+                },
             });
         }
     }
