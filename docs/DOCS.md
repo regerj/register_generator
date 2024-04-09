@@ -8,6 +8,7 @@
   * [Clearing the Whole Register](#clearing-the-whole-register)
   * [Reading Fields](#reading-fields)
   * [Writing Fields](#writing-fields)
+  * [Negative Fields](#negative-fields)
 <!--te-->
 
 ## Creating the JSON
@@ -107,6 +108,9 @@ public:
 	inline uint16_t get_register_value() const { return register_raw; };
 	inline void clear_register_value() { register_raw = 0x0; };
 	inline void set_register_value(uint16_t value) { register_raw = value; };
+
+	// Bitwise operator overloading
+	/* -- snip -- */
 protected:
 	uint16_t register_raw = 0x0;
 };
@@ -221,7 +225,7 @@ write_register(0x1234'5678, pcie_cap_reg);
 
 This code will write the value `0xDEAD` to the address `0x1234'5678`. Normally the `pcie_cap_reg` would be initially populated using the named access methods, but we haven't gone over those yet. They will be documented later in this file.
 
-If you are trying to iintegrate with an existing API that does not make use of this concept of a `Register16` object, that can still be done.
+If you are trying to integrate with an existing API that does not make use of this concept of a `Register16` object, that can still be done.
 
 ```cpp
 void write_register(uint32_t address, uint16_t value) {
@@ -296,3 +300,43 @@ write_register(0x1234'5678, pcie_cap_reg);
 ```
 
 This code shows how you can use these register objects to easily configure a register with certain bit field values in a memory safe and self documenting manner, and write it to memory with either an API designed around this `Register16` concept, or an existing API designed around `uint16_t`.
+
+## Negative Fields
+There is an optional key that can be provided to the JSON, `negative`. This key is defaulted to false if omitted. As the name implies, it indicates that the field containing it should support negative numbers. Most register values do not contain signed integers, but some do. One such example is transmission coefficients. This generator only supports 2's complement negative numbers at the moment. If a field is marked as negative, the get and set APIs will look different. For example, if we had marked the interrupt message number as read/write and negative, its get and set APIs would have the following signatures:
+
+```cpp
+inline int16_t get_interrupt_message_number() const;
+
+inline bool set_interrupt_message_number(int16_t value);
+```
+
+The corresponding JSON object for the field would look like this:
+
+```json
+{
+    "name":"interrupt_message_number",
+    "lsb":9,
+    "msb":13,
+    "read":true,
+    "write":true,
+    "negative":true
+}
+```
+
+You can see that now instead of the get method returning a `uint16_t` it now returns an `int16_t`. This will contain the valid 16 bit width signed representation of the number, regardless of the length of the field. This means that a value of -4 stored in this 5 bit field will be returned as the 16 bit representation of -4. The below code asserts this.
+
+```cpp
+// Assume that pcie_cap_reg.interrupt_message_number is -4
+PCIeCapabilitiesRegister pcie_cap_reg;
+
+int16_t actual_value = pcie_cap_reg.get_interrupt_message_number();
+assert(actual_value == -4);
+```
+
+Similarly, the set API now takes in an `int16_t` instead of a `uint16_t` and will still properly bounds check the value you attempt to write. To write a value of -4, it is as simple as:
+
+```cpp
+PCIeCapabilitiesRegister pcie_cap_reg;
+
+pcie_cap_reg.set_interrupt_message_number(-4);
+```

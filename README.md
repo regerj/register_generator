@@ -199,8 +199,8 @@ public:
 	inline void clear_register_value() { register_raw = 0x0; };
 	inline void set_register_value(uint16_t value) { register_raw = value; };
     
-    // Bitwise operator overloading
-    // -- snip -- //
+	// Bitwise operator overloading
+	/* -- snip -- */
 protected:
 	uint16_t register_raw = 0x0;
 };
@@ -319,7 +319,7 @@ Every file must contain three key-pair mappings. It will need a `register_family
 
 Each of those registers must contain three keys itself. The first is the `name` of the register, this will be the name of the instantiated class for that register. Next it will need the register `size`. This will be an integer either 8, 16, 32, or 64. I do not currently support any other lengths of registers, and do not have any current plans on adding it. Finally, it will have an array named `fields` which will contain JSON objects for each field in the register.
 
-Each filed needs to contain five keys. First, once again, is `name` which will be the name of the field, and will be used to name the access methods to that field within the class. Second and third will be `lsb` and `msb` which represent the **INCLUSIVE** bit bounds of the register. Lastly will be `read` and `write` which are boolean values representing if read and write access is allowed to that particular field. This controls if a get or set method is generated for that field.
+Each field needs to contain five keys. First, once again, is `name` which will be the name of the field, and will be used to name the access methods to that field within the class. Second and third will be `lsb` and `msb` which represent the **INCLUSIVE** bit bounds of the register. Lastly will be `read` and `write` which are boolean values representing if read and write access is allowed to that particular field. This controls if a get or set method is generated for that field. Finally, there is an optional key called `negative` which is defaulted to false. If set to true, the field will be marked as supporting negative numbers in 2's complement. The get and set API's will then translate the field into a standard length signed integer representation depending on the width of the register itself. See the docs for examples of this.
 
 ## Weaknesses
 
