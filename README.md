@@ -63,7 +63,7 @@ Our first, and most often used method, is with bit shifting and masking to retri
 uint32_t link_capabilites_reg = read_register(0x0C);
 uint32_t aspm_support = 0x0;
 
-aspm_support = (link_capabilites_reg >> 10) | 0b11;
+aspm_support = (link_capabilites_reg >> 10) & 0b11;
 ```
 
 This bit shifts the register by 10 bits to the right, so that the tenth bit is now the zero'th bit. Next, it is bit masked with `0b11` to only read the two bits we are interested. This will result in `aspm_support == 0b11`.
@@ -80,7 +80,7 @@ This method works well from a functionality standpoint, and perhaps a comment ab
 uint32_t link_capabilites_reg = read_register(0x0C);
 uint32_t aspm_support = 0x0;
 
-aspm_support = (link_capabilites_reg >> ASPM_SUPPORT_START) | ASPM_SUPPORT_WIDTH;
+aspm_support = (link_capabilites_reg >> ASPM_SUPPORT_START) & ASPM_SUPPORT_WIDTH;
 ```
 
 Adding this to the approach mitigates the need for looking up the magic numbers each time, but it introduces it's own set of problems.
@@ -101,7 +101,7 @@ You could provide MACROs to simplify the access to certain fields, perhaps it mi
 #define ASPM_SUPPORT_START 10
 #define ASPM_SUPPORT_WIDTH 0b11
 
-#define GET_ASPM_SUPPORT(link_capabilites_register) (link_capabilites_register >> ASPM_SUPPORT_START) | ASPM_SUPPORT_WIDTH
+#define GET_ASPM_SUPPORT(link_capabilites_register) (link_capabilites_register >> ASPM_SUPPORT_START) & ASPM_SUPPORT_WIDTH
 
 // main.cpp
 // Read the register from memory
@@ -198,6 +198,9 @@ public:
 	inline uint16_t get_register_value() const { return register_raw; };
 	inline void clear_register_value() { register_raw = 0x0; };
 	inline void set_register_value(uint16_t value) { register_raw = value; };
+    
+    // Bitwise operator overloading
+    // -- snip -- //
 protected:
 	uint16_t register_raw = 0x0;
 };
@@ -320,15 +323,13 @@ Each filed needs to contain five keys. First, once again, is `name` which will b
 
 ## Weaknesses
 
-- There is no JSON schema enforcement at the moment, as I am still very new to Rust. I will be adding this in the future, but I need to get some free time and read the documentation. This is a top priority on this project.
+- There is no JSON schema enforcement at the moment, as I am still very new to Rust. I will be adding this in the future, but I need to get some free time and read the documentation. This is a priority on this project.
 
-- Adding registers to the JSON can be somewhat tedious. Vim keybinds make this a little less tedious, but it is still not optimal. I plan to provide another binary which will provide a CLI for generating a new JSON file or appending new registers to it.
+- Adding registers to the JSON can be somewhat tedious. Vim keybinds make this a little less tedious, but it is still not optimal. I would like to provide another binary which will provide a CLI for generating a new JSON file or appending new registers to it.
 
 - There may be some level of memory overhead (not much runtime overhead I don't think...) in the object instantiations, but I think that is a small price to pay for a considerably more robust implementation of register support.
 
 - There is nothing preventing overlapping register fields at the moment. I am debating whether or not to enforce this, as I imagine some niche registers may be somewhat polymorphic, and at the end of the day overlapping bit boundaries is a user error. However, the entire point of this project was to prevent user errors to a reasonable degree, so I may or may not implement this.
-
-- There is currently no testing in this project. I am still learning Rust, and have not read the documentation on testing yet. When I get some time to read the documentation, I will implement this.
 
 ## Planned Features
 
