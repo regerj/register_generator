@@ -2,6 +2,7 @@
 
 ## Contents
 <!--ts-->
+  * [Usage](#usage)
   * [Creating the JSON](#creating-the-json)
   * [Writing the Whole Register](#writing-the-whole-register)
   * [Reading the Whole Register](#reading-the-whole-register)
@@ -10,6 +11,13 @@
   * [Writing Fields](#writing-fields)
   * [Negative Fields](#negative-fields)
 <!--te-->
+
+## Usage
+Usage is dead simple. Just pass the path to the JSON file as an argument to the CLI.
+
+```bash
+register_generator ./test.json
+```
 
 ## Creating the JSON
 
