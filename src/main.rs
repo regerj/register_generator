@@ -1,18 +1,24 @@
-use std::env;
 use std::fs::File;
 use std::io::Read;
-use std::path::PathBuf;
-use std::path::Path;
+
+use clap::Parser;
 
 use crate::register_file_generator::register::*;
 use crate::register_file_generator::file_generator::*;
 
 mod register_file_generator;
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    path: String
+}
+
 fn main() {
     // Open the file
-    let path = handle_args().expect("Arguments invalid!"); 
-    let mut file = File::open(path).expect("Couldn't open the input file!");
+    let args = Args::parse();
+    let mut file = File::open(args.path).expect("Couldn't open the input file!");
 
     // Read in the string as json
     let mut json_string = String::new();
@@ -56,15 +62,6 @@ fn main() {
     // Write the files with the data
     for register in registers {
         write_register_to_file(&register, &register_family);
-    }
-}
-
-fn handle_args() -> Result<PathBuf, ()> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() == 2 {
-        return Ok(Path::new(&args[1]).to_path_buf());
-    } else {
-        return Err(());
     }
 }
 
