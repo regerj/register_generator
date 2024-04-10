@@ -321,6 +321,10 @@ Each of those registers must contain three keys itself. The first is the `name` 
 
 Each field needs to contain five keys. First, once again, is `name` which will be the name of the field, and will be used to name the access methods to that field within the class. Second and third will be `lsb` and `msb` which represent the **INCLUSIVE** bit bounds of the register. Lastly will be `read` and `write` which are boolean values representing if read and write access is allowed to that particular field. This controls if a get or set method is generated for that field. Finally, there is an optional key called `negative` which is defaulted to false. If set to true, the field will be marked as supporting negative numbers in 2's complement. The get and set API's will then translate the field into a standard length signed integer representation depending on the width of the register itself. See the docs for examples of this.
 
+
+> [!WARNING]  
+> JSON Schema is not present. Errors in JSON may or may not have descriptive error outputs. Please use the example JSON here or examples in [Documentation](docs/DOCS.md) to ensure correct JSON.
+
 ## Weaknesses
 
 - There is no JSON schema enforcement at the moment, as I am still very new to Rust. I will be adding this in the future, but I need to get some free time and read the documentation. This is a priority on this project.
