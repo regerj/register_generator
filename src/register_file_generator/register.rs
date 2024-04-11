@@ -1,21 +1,32 @@
-pub struct Register {
-    pub name: String,
-    pub _size: u8,
-    pub fields: Vec<Field>,
-}
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Field {
     pub name: String,
-    pub least_significant_bit: u8,
-    pub most_significant_bit: u8,
+    pub lsb: u8,
+    pub msb: u8,
     pub read: bool,
     pub write: bool,
-    pub negative: bool,
+    pub negative: Option<bool>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Register {
+    pub name: String,
+    pub size: u8,
+    pub fields: Vec<Field>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RegisterFamily {
+    pub register_family: String,
+    pub register_family_widths: Vec<u8>,
+    pub registers: Vec<Register>
 }
 
 impl Field {
     pub fn create_get_method(&self, register_width: u8) -> String {
-        if self.negative {
+        if self.negative.is_some() && self.negative.unwrap() == true {
             return format!(
                 "\tinline int{3}_t get_{0}() const {{\n\
                 \t\tuint{3}_t buffer = register_raw >> {1};\n\
@@ -26,8 +37,8 @@ impl Field {
                 \t\treturn field_raw;\n\
                 \t}}\n",
                 self.name,
-                self.least_significant_bit,
-                self.most_significant_bit,
+                self.lsb,
+                self.msb,
                 register_width
             );
         } else {
@@ -37,8 +48,8 @@ impl Field {
                 \t\treturn buffer & (UINT{3}_MAX >> ({3} - 1 - ({2} - {1})));\n\
                 \t}}\n",
                 self.name,
-                self.least_significant_bit,
-                self.most_significant_bit,
+                self.lsb,
+                self.msb,
                 register_width
             );
         }
@@ -46,7 +57,7 @@ impl Field {
     
     pub fn create_set_method(&self, register_width: u8) -> String {
         // Negative numbers need to be bounds checked differently
-        if self.negative {
+        if self.negative.is_some() && self.negative.unwrap() == true {
             return format!(
                 "\tinline bool set_{0}(int{3}_t value) {{\n\
                 \t\tif (value < 0) {{\n\
@@ -66,8 +77,8 @@ impl Field {
                 \t\treturn true;\n\
                 \t}}\n",
                 self.name,
-                self.least_significant_bit,
-                self.most_significant_bit,
+                self.lsb,
+                self.msb,
                 register_width
             );
         } else {
@@ -83,8 +94,8 @@ impl Field {
                 \t\treturn true;\n\
                 \t}}\n",
                 self.name,
-                self.least_significant_bit,
-                self.most_significant_bit,
+                self.lsb,
+                self.msb,
                 register_width
             )
         }
