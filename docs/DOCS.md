@@ -3,6 +3,7 @@
 ## Contents
 <!--ts-->
   * [Usage](#usage)
+  * [JSON Scheme](#json-scheme)
   * [Creating the JSON](#creating-the-json)
   * [Writing the Whole Register](#writing-the-whole-register)
   * [Reading the Whole Register](#reading-the-whole-register)
@@ -17,6 +18,33 @@ Usage is dead simple. Just pass the path to the JSON file as an argument to the 
 
 ```bash
 register_generator ./test.json
+```
+
+## JSON Scheme
+The JSON scheme can be seen below:
+```jsonschema
+{
+    "register_family":String,
+    "register_family_widths":[u8],
+    "registers":[
+        {
+            "name":String,
+            "size":u8,
+            "fields":[
+                {
+                    "name":String,
+                    "lsb":u8,
+                    "msb":u8,
+                    "read":bool,
+                    "write":bool,
+		    "negative":bool (optional)
+                },
+                ...
+            ]
+        },
+	...
+    ]
+}
 ```
 
 ## Creating the JSON
