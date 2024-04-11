@@ -26,8 +26,8 @@ pub struct RegisterFamily {
 
 impl Field {
     pub fn create_get_method(&self, register_width: u8) -> String {
-        if self.negative.is_some() && self.negative.unwrap() == true {
-            return format!(
+        return match self.negative {
+            Some(true) => format!(
                 "\tinline int{3}_t get_{0}() const {{\n\
                 \t\tuint{3}_t buffer = register_raw >> {1};\n\
                 \t\tuint{3}_t field_raw = buffer & (UINT{3}_MAX >> ({3} - 1 - ({2} - {1})));\n\
@@ -40,9 +40,8 @@ impl Field {
                 self.lsb,
                 self.msb,
                 register_width
-            );
-        } else {
-            return format!(
+            ),
+            _ => format!(
                 "\tinline uint{3}_t get_{0}() const {{\n\
                 \t\tuint{3}_t buffer = register_raw >> {1};\n\
                 \t\treturn buffer & (UINT{3}_MAX >> ({3} - 1 - ({2} - {1})));\n\
@@ -51,14 +50,14 @@ impl Field {
                 self.lsb,
                 self.msb,
                 register_width
-            );
+            )
         }
     }
-    
+
     pub fn create_set_method(&self, register_width: u8) -> String {
         // Negative numbers need to be bounds checked differently
-        if self.negative.is_some() && self.negative.unwrap() == true {
-            return format!(
+        return match self.negative {
+            Some(true) => format!(
                 "\tinline bool set_{0}(int{3}_t value) {{\n\
                 \t\tif (value < 0) {{\n\
                 \t\t\tif (-value > (1 << ({2} - {1}))) {{\n\
@@ -80,9 +79,8 @@ impl Field {
                 self.lsb,
                 self.msb,
                 register_width
-            );
-        } else {
-            return format!(
+            ),
+            _ => format!(
                 "\tinline bool set_{0}(uint{3}_t value) {{\n\
                 \t\tif (value >= (1 << ({2} - ({1} - 1)))) {{\n\
                 \t\t\treturn false;\n\
