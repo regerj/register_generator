@@ -16,7 +16,7 @@
 Usage is dead simple. Just pass the path to the JSON file as an argument to the CLI.
 
 ```bash
-register_generator ./test.json
+register_generator --path ./test.json
 ```
 
 ## Creating the JSON
