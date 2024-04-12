@@ -1,7 +1,15 @@
 use std::{path::Path, fs::{File, OpenOptions}, io::Write, collections::HashSet};
 use crate::register_file_generator::register::*;
 
-pub fn create_base_register_files(register_widths: &Vec<u8>, register_family: &String) {
+pub fn generate_files(register_family: &RegisterFamily) {
+    create_base_register_files(&register_family.register_family_widths, &register_family.register_family);
+
+    for register in &register_family.registers {
+        write_register_to_file(&register, &register_family.register_family);
+    }
+}
+
+fn create_base_register_files(register_widths: &Vec<u8>, register_family: &String) {
     for register_width in register_widths {
         // Create the base register file
         let file_name = format!("Register{}.h", register_width);
@@ -85,10 +93,10 @@ pub fn create_base_register_files(register_widths: &Vec<u8>, register_family: &S
     }
 }
 
-pub fn write_register_to_file(register: &Register, register_family: &String) {
+fn write_register_to_file(register: &Register, register_family: &String) {
     // Supported register widths
     let supported_register_widths: HashSet<u8> = HashSet::from([8, 16, 32, 64]);
-    if !supported_register_widths.contains(&register._size) {
+    if !supported_register_widths.contains(&register.size) {
         panic!("Invalid register width!");
     } 
 
@@ -110,11 +118,11 @@ pub fn write_register_to_file(register: &Register, register_family: &String) {
     // Check permissions and create a method if allowed
     for current_field in register.fields.iter() {
         if current_field.read {
-            get_methods.push_str(&current_field.create_get_method(register._size));
+            get_methods.push_str(&current_field.create_get_method(register.size));
         }
 
         if current_field.write {
-            set_methods.push_str(&current_field.create_set_method(register._size));
+            set_methods.push_str(&current_field.create_set_method(register.size));
         }
     }
 
@@ -131,7 +139,7 @@ pub fn write_register_to_file(register: &Register, register_family: &String) {
         register.name,
         get_methods,
         set_methods,
-        register._size
+        register.size
     );
 
     match file.write_all(full_string.as_bytes()) {
