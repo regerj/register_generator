@@ -3,7 +3,7 @@
 [Documentation](docs/DOCS.md) on how to use this solution is available in DOCS.md. This README will cover the  current solutions, their problems, the need for a better solution, and cover how my solution fixes most of these weaknesses.
 
 > [!CAUTION]  
-> Head is unstable and may have breaking changes or non-functioning features. Use at your own risk. Please use the release tags with semantic versioning for more stable builds. Minor versions prior to 1.0.0 may include API changes. Patches will never contain API changes.
+> Head is unstable and may have breaking changes or non-functioning features. Use at your own risk. Please use the release tags with semantic versioning for more stable builds. Minor versions prior to v1.0.0 may include API changes. Patches will never contain API changes.
 
 ## Contents
 <!--ts-->
