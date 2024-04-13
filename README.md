@@ -337,9 +337,7 @@ Each field needs to contain five keys. First, once again, is `name` which will b
 
 ## Weaknesses
 
-- There is no JSON schema enforcement at the moment, as I am still very new to Rust. I will be adding this in the future, but I need to get some free time and read the documentation. This is a priority on this project.
-
-- Adding registers to the JSON can be somewhat tedious. Vim keybinds make this a little less tedious, but it is still not optimal. I would like to provide another binary which will provide a CLI for generating a new JSON file or appending new registers to it.
+- There is no JSON schema enforcement at the moment. To avoid issues with JSON validity, you can use the CLI to add registers to it.
 
 - There may be some level of memory overhead (not much runtime overhead I don't think...) in the object instantiations, but I think that is a small price to pay for a considerably more robust implementation of register support.
 
@@ -347,6 +345,4 @@ Each field needs to contain five keys. First, once again, is `name` which will b
 
 ## Planned Features
 
-- Add JSON schema enforcement.
-
-- Add CLI for generating and appending register definitions to JSON.
+- Add bootstrap command to create initial JSON file through CLI.
