@@ -287,7 +287,7 @@ Now lets look at an example JSON to see how we can configure our register genera
           "msb": 7,
           "read": true,
           "write": true,
-          "negative": null
+          "negative": false
         },
         {
           "name": "hi",
@@ -295,7 +295,7 @@ Now lets look at an example JSON to see how we can configure our register genera
           "msb": 15,
           "read": true,
           "write": true,
-          "negative": null
+          "negative": false
         }
       ]
     },
@@ -309,7 +309,7 @@ Now lets look at an example JSON to see how we can configure our register genera
           "msb": 15,
           "read": true,
           "write": true,
-          "negative": null
+          "negative": false
         },
         {
           "name": "HIGH",
@@ -317,7 +317,7 @@ Now lets look at an example JSON to see how we can configure our register genera
           "msb": 31,
           "read": true,
           "write": true,
-          "negative": null
+          "negative": false
         }
       ]
     }
