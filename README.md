@@ -2,6 +2,9 @@
 
 [Documentation](docs/DOCS.md) on how to use this solution is available in DOCS.md. This README will cover the  current solutions, their problems, the need for a better solution, and cover how my solution fixes most of these weaknesses.
 
+> [!CAUTION]  
+> Head is unstable and may have breaking changes or non-functioning features. Use at your own risk. Please use the release tags with semantic versioning for more stable builds. Minor versions prior to 1.0.0 may include API changes. Patches will never contain API changes.
+
 ## Contents
 <!--ts-->
   * [Description](#description)
@@ -268,50 +271,57 @@ Now lets look at an example JSON to see how we can configure our register genera
 
 ```json
 {
-    "register_family":"HIF",
-    "register_family_widths":[16,32],
-    "registers":[
+  "register_family": "HIF",
+  "register_family_widths": [
+    16,
+    32
+  ],
+  "registers": [
+    {
+      "name": "TestRegister1",
+      "size": 16,
+      "fields": [
         {
-            "name":"TestRegister1",
-            "size":16,
-            "fields":[
-                {
-                    "name":"lo",
-                    "lsb":0,
-                    "msb":7,
-                    "read":true,
-                    "write":true
-                },
-                {
-                    "name":"hi",
-                    "lsb":8,
-                    "msb":15,
-                    "read":true,
-                    "write":true
-                }
-            ]
+          "name": "lo",
+          "lsb": 0,
+          "msb": 7,
+          "read": true,
+          "write": true,
+          "negative": null
         },
         {
-            "name":"TestRegister2",
-            "size":32,
-            "fields":[
-                {
-                    "name":"LOW",
-                    "lsb":0,
-                    "msb":15,
-                    "read":true,
-                    "write":true
-                },
-                {
-                    "name":"HIGH",
-                    "lsb":16,
-                    "msb":31,
-                    "read":true,
-                    "write":true
-                }
-            ]
+          "name": "hi",
+          "lsb": 8,
+          "msb": 15,
+          "read": true,
+          "write": true,
+          "negative": null
         }
-    ]
+      ]
+    },
+    {
+      "name": "TestRegister2",
+      "size": 32,
+      "fields": [
+        {
+          "name": "LOW",
+          "lsb": 0,
+          "msb": 15,
+          "read": true,
+          "write": true,
+          "negative": null
+        },
+        {
+          "name": "HIGH",
+          "lsb": 16,
+          "msb": 31,
+          "read": true,
+          "write": true,
+          "negative": null
+        }
+      ]
+    }
+  ]
 }
 ```
 
