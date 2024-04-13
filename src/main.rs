@@ -139,6 +139,7 @@ fn add_register_handler(args: AddRegisterArgs) {
         .read(true)
         .write(true)
         .create(false)
+        .truncate(true)
         .open(args.path.clone())
         .unwrap();
 
