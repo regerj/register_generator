@@ -2,7 +2,6 @@
 
 ## Contents
 <!--ts-->
-  * [Usage](#usage)
   * [JSON Scheme](#json-scheme)
   * [Creating the JSON](#creating-the-json)
   * [Writing the Whole Register](#writing-the-whole-register)
@@ -13,37 +12,47 @@
   * [Negative Fields](#negative-fields)
 <!--te-->
 
-## Usage
-Usage is dead simple. Just pass the path to the JSON file as an argument to the CLI.
+## Commands
+
+### Adding a Register
+Adding a register can either be done manually by editing the JSON configuration file directly, or through a simple CLI interface. See the `add-register` command:
 
 ```bash
-register_generator --path ./test.json
+./register_generator add-register --help
 ```
+
+This command will prompt you for information on the fields of the register, which you will provide and when done adding fields, it will write the new register definition to the JSON file.
+
+> [!WARNING]  
+> The add-register command automatically formats. This may result in changes to the formatting you were using originally in the JSON, and it may add `negative` properties to existing fields. These will be `null` and thus will have no impact on generated headers.
 
 ## JSON Scheme
 The JSON scheme can be seen below:
-```jsonschema
+```json
 {
-    "register_family":String,
-    "register_family_widths":[u8],
-    "registers":[
+  "register_family": String,
+  "register_family_widths": [
+    u8
+    ...
+  ],
+  "registers": [
+    {
+      "name": String,
+      "size": u8,
+      "fields": [
         {
-            "name":String,
-            "size":u8,
-            "fields":[
-                {
-                    "name":String,
-                    "lsb":u8,
-                    "msb":u8,
-                    "read":bool,
-                    "write":bool,
-		    "negative":bool (optional)
-                },
-                ...
-            ]
+          "name": String,
+          "lsb": u8,
+          "msb": u8,
+          "read": bool,
+          "write": bool,
+          "negative": bool (optional)
         },
-	...
-    ]
+        ...
+      ]
+    },
+    ...
+  ]
 }
 ```
 
@@ -57,7 +66,7 @@ Let's say we are working with a PCIe driver, and we need to control PCIe registe
 | 7:4 | Device/Port Type |
 | 8:8 | Slot Implemented |
 | 13:9 | Interrupt Message Number |
-| 14:14 | [Deprecated] TCS Routing Support |
+| 14 | [Deprecated] TCS Routing Support |
 | 15 | Reserved |
 
 From the PCIe Spec mentioned before:
@@ -84,44 +93,50 @@ Creating a JSON file that would support only this register would look something 
 
 ```json
 {
-    "register_family":"HIF",
-    "register_family_widths":[16],
-    "registers":[
+  "register_family": "HIF",
+  "register_family_widths": [
+    16
+  ],
+  "registers": [
+    {
+      "name": "PCIeCapabilitiesRegister",
+      "size": 16,
+      "fields": [
         {
-            "name":"PCIeCapabilitiesRegister",
-            "size":16,
-            "fields":[
-                {
-                    "name":"capability_version",
-                    "lsb":0,
-                    "msb":3,
-                    "read":true,
-                    "write":false
-                },
-                {
-                    "name":"device_port_type",
-                    "lsb":4,
-                    "msb":7,
-                    "read":true,
-                    "write":false
-                },
-                {
-                    "name":"slot_implemented",
-                    "lsb":8,
-                    "msb":8,
-                    "read":true,
-                    "write":false
-                },
-                {
-                    "name":"interrupt_message_number",
-                    "lsb":9,
-                    "msb":13,
-                    "read":true,
-                    "write":false
-                }
-            ]
+          "name": "capability_version",
+          "lsb": 0,
+          "msb": 3,
+          "read": true,
+          "write": false,
+          "negative": false
+        },
+        {
+          "name": "device_port_type",
+          "lsb": 4,
+          "msb": 7,
+          "read": true,
+          "write": false,
+          "negative": false
+        },
+        {
+          "name": "slot_implemented",
+          "lsb": 8,
+          "msb": 8,
+          "read": true,
+          "write": false,
+          "negative": false
+        },
+        {
+          "name": "interrupt_message_number",
+          "lsb": 9,
+          "msb": 13,
+          "read": true,
+          "write": false,
+          "negative": false
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
