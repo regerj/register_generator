@@ -1,2 +1,4 @@
 /target
-*.h
+/test/build
+/test/environment
+/test/.cache
