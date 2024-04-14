@@ -2,6 +2,9 @@
 
 [Documentation](docs/DOCS.md) on how to use this solution is available in DOCS.md. This README will cover the  current solutions, their problems, the need for a better solution, and cover how my solution fixes most of these weaknesses.
 
+> [!CAUTION]  
+> Head is unstable and may have breaking changes or non-functioning features. Use at your own risk. Please use the release tags with semantic versioning for more stable builds. Minor versions prior to v1.0.0 may include API changes. Patches will never contain API changes.
+
 ## Contents
 <!--ts-->
   * [Description](#description)
@@ -268,50 +271,57 @@ Now lets look at an example JSON to see how we can configure our register genera
 
 ```json
 {
-    "register_family":"HIF",
-    "register_family_widths":[16,32],
-    "registers":[
+  "register_family": "HIF",
+  "register_family_widths": [
+    16,
+    32
+  ],
+  "registers": [
+    {
+      "name": "TestRegister1",
+      "size": 16,
+      "fields": [
         {
-            "name":"TestRegister1",
-            "size":16,
-            "fields":[
-                {
-                    "name":"lo",
-                    "lsb":0,
-                    "msb":7,
-                    "read":true,
-                    "write":true
-                },
-                {
-                    "name":"hi",
-                    "lsb":8,
-                    "msb":15,
-                    "read":true,
-                    "write":true
-                }
-            ]
+          "name": "lo",
+          "lsb": 0,
+          "msb": 7,
+          "read": true,
+          "write": true,
+          "negative": false
         },
         {
-            "name":"TestRegister2",
-            "size":32,
-            "fields":[
-                {
-                    "name":"LOW",
-                    "lsb":0,
-                    "msb":15,
-                    "read":true,
-                    "write":true
-                },
-                {
-                    "name":"HIGH",
-                    "lsb":16,
-                    "msb":31,
-                    "read":true,
-                    "write":true
-                }
-            ]
+          "name": "hi",
+          "lsb": 8,
+          "msb": 15,
+          "read": true,
+          "write": true,
+          "negative": false
         }
-    ]
+      ]
+    },
+    {
+      "name": "TestRegister2",
+      "size": 32,
+      "fields": [
+        {
+          "name": "LOW",
+          "lsb": 0,
+          "msb": 15,
+          "read": true,
+          "write": true,
+          "negative": false
+        },
+        {
+          "name": "HIGH",
+          "lsb": 16,
+          "msb": 31,
+          "read": true,
+          "write": true,
+          "negative": false
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -327,9 +337,7 @@ Each field needs to contain five keys. First, once again, is `name` which will b
 
 ## Weaknesses
 
-- There is no JSON schema enforcement at the moment, as I am still very new to Rust. I will be adding this in the future, but I need to get some free time and read the documentation. This is a priority on this project.
-
-- Adding registers to the JSON can be somewhat tedious. Vim keybinds make this a little less tedious, but it is still not optimal. I would like to provide another binary which will provide a CLI for generating a new JSON file or appending new registers to it.
+- There is no JSON schema enforcement at the moment. To avoid issues with JSON validity, you can use the CLI to add registers to it.
 
 - There may be some level of memory overhead (not much runtime overhead I don't think...) in the object instantiations, but I think that is a small price to pay for a considerably more robust implementation of register support.
 
@@ -337,6 +345,4 @@ Each field needs to contain five keys. First, once again, is `name` which will b
 
 ## Planned Features
 
-- Add JSON schema enforcement.
-
-- Add CLI for generating and appending register definitions to JSON.
+- Add bootstrap command to create initial JSON file through CLI.
