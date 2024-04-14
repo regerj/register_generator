@@ -2,8 +2,12 @@
 
 ## Contents
 <!--ts-->
+  * [Commands](#commands)
+    * [Adding a Register](#adding-a-register)
+    * [Generating Headers](#generating-headers)
   * [JSON Scheme](#json-scheme)
   * [Creating the JSON](#creating-the-json)
+  * [Generated Headers](#generated-headers)
   * [Writing the Whole Register](#writing-the-whole-register)
   * [Reading the Whole Register](#reading-the-whole-register)
   * [Clearing the Whole Register](#clearing-the-whole-register)
@@ -25,6 +29,13 @@ This command will prompt you for information on the fields of the register, whic
 
 > [!WARNING]  
 > The add-register command automatically formats. This may result in changes to the formatting you were using originally in the JSON, and it may add `negative` properties to existing fields. These will be `null` and thus will have no impact on generated headers.
+
+### Generating Headers
+Generating headers requires a valid JSON configuration file to already exist. See the following command for more information on calling this command:
+
+```bash
+./register_generator generate --help
+```
 
 ## JSON Scheme
 The JSON scheme can be seen below:
@@ -141,6 +152,9 @@ Creating a JSON file that would support only this register would look something 
 ```
 
 Note that I left out deprecated and reserved bits from the JSON. This makes it so that no get or set methods are avaialable for them. Alternatively if you really want every bit accounted for in the JSON, you can define them there but leave `read` and `write` false, which will accomplish the same task. This generally allows you to completely omit reserved and deprecated bits from the interface to the regsiter entirely.
+
+
+## Generated Headers
 
 Running the generator on this JSON file will yield two generated files. It will yield a `Register16.h` file containing the following code:
 
@@ -353,7 +367,7 @@ write_register(0x1234'5678, pcie_cap_reg);
 This code shows how you can use these register objects to easily configure a register with certain bit field values in a memory safe and self documenting manner, and write it to memory with either an API designed around this `Register16` concept, or an existing API designed around `uint16_t`.
 
 ## Negative Fields
-There is an optional key that can be provided to the JSON, `negative`. This key is defaulted to false if omitted. As the name implies, it indicates that the field containing it should support negative numbers. Most register values do not contain signed integers, but some do. One such example is transmission coefficients. This generator only supports 2's complement negative numbers at the moment. If a field is marked as negative, the get and set APIs will look different. For example, if we had marked the interrupt message number as read/write and negative, its get and set APIs would have the following signatures:
+There is an optional key that can be provided to the JSON, `negative`. This key is defaulted to false if omitted or null. As the name implies, it indicates that the field containing it should support negative numbers. Most register values do not contain signed integers, but some do. One such example is transmission coefficients. This generator only supports 2's complement negative numbers at the moment. If a field is marked as negative, the get and set APIs will look different. For example, if we had marked the interrupt message number as read/write and negative, its get and set APIs would have the following signatures:
 
 ```cpp
 inline int16_t get_interrupt_message_number() const;
