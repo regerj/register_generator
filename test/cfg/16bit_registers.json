@@ -1,16 +1,15 @@
 {
-  "register_family": "TEST",
+  "register_family": "16Bit",
   "register_family_widths": [
-    16,
-    32
+    16
   ],
   "registers": [
     {
-      "name": "TestRegister1",
+      "name": "HighLow_16",
       "size": 16,
       "fields": [
         {
-          "name": "lo",
+          "name": "low",
           "lsb": 0,
           "msb": 7,
           "read": true,
@@ -18,7 +17,7 @@
           "negative": false
         },
         {
-          "name": "hi",
+          "name": "high",
           "lsb": 8,
           "msb": 15,
           "read": true,
@@ -28,24 +27,24 @@
       ]
     },
     {
-      "name": "TestRegister2",
-      "size": 32,
+      "name": "NegHighLow_16",
+      "size": 16,
       "fields": [
         {
-          "name": "LOW",
+          "name": "low",
           "lsb": 0,
+          "msb": 7,
+          "read": true,
+          "write": true,
+          "negative": true
+        },
+        {
+          "name": "high",
+          "lsb": 8,
           "msb": 15,
           "read": true,
           "write": true,
-          "negative": false
-        },
-        {
-          "name": "HIGH",
-          "lsb": 16,
-          "msb": 31,
-          "read": true,
-          "write": true,
-          "negative": false
+          "negative": true
         }
       ]
     }
