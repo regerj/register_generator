@@ -241,7 +241,7 @@ public:
 
 	// Set methods
 	inline bool set_lo(uint16_t value) {
-		if (value >= (1 << (7 - (0 - 1)))) {
+		if (value >= ((uint32_t)1 << (7 - (0 - 1)))) {
 			return false;
 		}
 		uint16_t mask = static_cast<uint16_t>(~((UINT16_MAX >> (16 - 1 - (7 - 0))) << 0));
@@ -251,7 +251,7 @@ public:
 		return true;
 	}
 	inline bool set_hi(uint16_t value) {
-		if (value >= (1 << (15 - (8 - 1)))) {
+		if (value >= ((uint32_t)1 << (15 - (8 - 1)))) {
 			return false;
 		}
 		uint16_t mask = static_cast<uint16_t>(~((UINT16_MAX >> (16 - 1 - (15 - 8))) << 8));
