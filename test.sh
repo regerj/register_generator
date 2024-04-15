@@ -17,7 +17,7 @@ ENDCOLOR="\e[0m"
 
 # Initial setup for test
 cargo build
-# mkdir ${ENV_DIR}
+mkdir ${ENV_DIR}
 cp ${PROJECT_BINARY} ${ENV_DIR}
 cd ${ENV_DIR}
 
@@ -39,4 +39,4 @@ echo -e "${BOLDGREEN}SUCCESS${ENDCOLOR}"
 
 # Teardown the environment
 cd ..
-# rm -rf ./environment
+rm -rf ./environment
