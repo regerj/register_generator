@@ -1,19 +1,19 @@
 #include <cstdlib>
 #include <gtest/gtest.h>
 
-#include <16BitRegisters.h>
+#include <32BitRegisters.h>
 
 #define ZERO 0x00
-#define MAX 0xFFFF
-#define HALF_UNSIG 0x7F
-#define MAX_UNSIG 0xFF
-#define MIN_SIG -128
-#define MAX_SIG 127
+#define MAX 0xFFFF'FFFF
+#define HALF_UNSIG 0x7FFF
+#define MAX_UNSIG 0xFFFF
+#define MIN_SIG -32'768
+#define MAX_SIG 32'767
 
-#define HALF_SHIFT 8
+#define HALF_SHIFT 16
 
-TEST(Test16Bit, GetTest) {
-    HighLow_16 reg;
+TEST(Test32Bit, GetTest) {
+    HighLow_32 reg;
 
     EXPECT_EQ(reg.get_low(), ZERO);
     EXPECT_EQ(reg.get_high(), ZERO);
@@ -39,8 +39,8 @@ TEST(Test16Bit, GetTest) {
     EXPECT_EQ(reg.get_high(), HALF_UNSIG);
 }
 
-TEST(Test16Bit, SetTest) {
-    HighLow_16 reg;
+TEST(Test32Bit, SetTest) {
+    HighLow_32 reg;
 
     EXPECT_EQ(reg.get_register_value(), ZERO);
 
@@ -106,8 +106,8 @@ TEST(Test16Bit, SetTest) {
 }
 
 
-TEST(Test16Bit, NegGetTest) {
-    NegHighLow_16 reg;
+TEST(Test32Bit, NegGetTest) {
+    NegHighLow_32 reg;
 
     EXPECT_EQ(reg.get_low(), ZERO);
     EXPECT_EQ(reg.get_high(), ZERO);
@@ -132,8 +132,8 @@ TEST(Test16Bit, NegGetTest) {
     EXPECT_EQ(reg.get_high(), MAX_SIG);
 }
 
-TEST(Test16Bit, NegSetTest) {
-    NegHighLow_16 reg;
+TEST(Test32Bit, NegSetTest) {
+    NegHighLow_32 reg;
 
     EXPECT_EQ(reg.get_register_value(), ZERO);
 

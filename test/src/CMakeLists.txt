@@ -12,6 +12,8 @@ target_sources(
     PRIVATE
     8BitTest.cpp
     16BitTest.cpp
+    32BitTest.cpp
+    64BitTest.cpp
 )
 
 target_include_directories(
