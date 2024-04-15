@@ -60,11 +60,11 @@ impl Field {
             Some(true) => format!(
                 "\tinline bool set_{0}(int{3}_t value) {{\n\
                 \t\tif (value < 0) {{\n\
-                \t\t\tif (-value > (1 << ({2} - {1}))) {{\n\
+                \t\t\tif (-value > ((int{3}_t)1 << ({2} - {1}))) {{\n\
                 \t\t\t\treturn false;\n\
                 \t\t\t}}\n\
                 \t\t}} else {{\n\
-                \t\t\tif (value >= (1 << ({2} - {1}))) {{\n\
+                \t\t\tif (value >= ((int{3}_t)1 << ({2} - {1}))) {{\n\
                 \t\t\t\treturn false;\n\
                 \t\t\t}}\n\
                 \t\t}}\n\
@@ -82,7 +82,7 @@ impl Field {
             ),
             _ => format!(
                 "\tinline bool set_{0}(uint{3}_t value) {{\n\
-                \t\tif (value >= (1 << ({2} - ({1} - 1)))) {{\n\
+                \t\tif (value >= ((uint{3}_t)1 << ({2} - ({1} - 1)))) {{\n\
                 \t\t\treturn false;\n\
                 \t\t}}\n\
                 \t\tuint{3}_t mask = static_cast<uint{3}_t>(~((UINT{3}_MAX >> ({3} - 1 - ({2} - {1}))) << {1}));\n\

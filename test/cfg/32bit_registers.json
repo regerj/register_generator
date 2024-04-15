@@ -1,0 +1,52 @@
+{
+  "register_family": "32Bit",
+  "register_family_widths": [
+    32
+  ],
+  "registers": [
+    {
+      "name": "HighLow_32",
+      "size": 32,
+      "fields": [
+        {
+          "name": "low",
+          "lsb": 0,
+          "msb": 15,
+          "read": true,
+          "write": true,
+          "negative": false
+        },
+        {
+          "name": "high",
+          "lsb": 16,
+          "msb": 31,
+          "read": true,
+          "write": true,
+          "negative": false
+        }
+      ]
+    },
+    {
+      "name": "NegHighLow_32",
+      "size": 32,
+      "fields": [
+        {
+          "name": "low",
+          "lsb": 0,
+          "msb": 15,
+          "read": true,
+          "write": true,
+          "negative": true
+        },
+        {
+          "name": "high",
+          "lsb": 16,
+          "msb": 31,
+          "read": true,
+          "write": true,
+          "negative": true
+        }
+      ]
+    }
+  ]
+}
