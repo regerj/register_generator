@@ -5,6 +5,8 @@ use std::fs::OpenOptions;
 use std::io;
 use std::io::Read;
 use std::io::Write;
+use std::usize;
+use std::vec;
 
 // Clap
 use clap::Args;
@@ -23,6 +25,8 @@ enum Commands {
     AddRegister(AddRegisterArgs),
     /// Generate new header files
     Generate(GenerateArgs),
+    /// Creates an initial JSON file for a new register family
+    Bootstrap(BootstrapArgs),
 }
 
 #[derive(Parser)]
@@ -42,7 +46,7 @@ struct AddRegisterArgs {
     #[arg(short, long)]
     name: String,
     /// Size of the new register (must be supported by register family)
-    #[arg(short, long)]
+    #[arg(short, long, value_parser = register_size_supported)]
     size: u8,
 }
 
@@ -51,6 +55,29 @@ struct GenerateArgs {
     /// Path to the configuration JSON
     #[arg(short, long)]
     path: String,
+}
+
+#[derive(Args)]
+struct BootstrapArgs {
+    /// Path to the JSON file to generate
+    #[arg(short, long)]
+    path: String,
+    
+    /// Name of the register family
+    #[arg(short, long)]
+    name: String,
+}
+
+fn register_size_supported(size: &str) -> Result<u8, String> {
+    let supported_sizes = vec![8, 16, 32, 64];
+    let size: usize = size
+        .parse()
+        .map_err(|_| format!("`{size}` isn't a number"))?;
+    if supported_sizes.contains(&size) {
+        Ok(size as u8)
+    } else {
+        Err("Unsupported size. Supported register sizes are: 8, 16, 32, 64".to_string())
+    }
 }
 
 fn pull_existing_json(path: String) -> RegisterFamily {
@@ -105,6 +132,10 @@ fn add_register_field(register: &mut Register) {
 fn add_register_handler(args: AddRegisterArgs) {
     let mut register_family = pull_existing_json(args.path.clone());
 
+    if !register_family.register_family_widths.contains(&args.size) {
+        register_family.register_family_widths.push(args.size);
+    }
+
     let mut register = Register {
         name: args.name,
         size: args.size,
@@ -155,6 +186,27 @@ fn generate_handler(args: GenerateArgs) {
     generate_files(&register_family);
 }
 
+fn bootstrap_handler(args: BootstrapArgs) {
+    let mut file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(args.path.clone())
+        .unwrap();
+
+    let reg_family = RegisterFamily {
+        register_family: args.name.clone(),
+        register_family_widths: Vec::new(),
+        registers: Vec::new(),
+    };
+
+    match file.write_all(serde_json::to_string_pretty(&reg_family).unwrap().as_bytes()) {
+        Ok(_) => {},
+        Err(why) => panic!("Couldn't write to {}: {}", args.path, why)
+    }
+}
+
 fn main() {
     // Get user input and dispatch
     let cli_input = Cli::parse();
@@ -164,6 +216,9 @@ fn main() {
         },
         Commands::Generate(args) => {
             generate_handler(args);
+        },
+        Commands::Bootstrap(args) => {
+            bootstrap_handler(args);
         }
     }
 }
