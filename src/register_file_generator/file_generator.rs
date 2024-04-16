@@ -1,5 +1,55 @@
-use std::{path::Path, fs::{File, OpenOptions}, io::Write, collections::HashSet};
+use std::{path::Path, fs::{File, OpenOptions}, io::{Write, Read, self}, collections::HashSet};
 use crate::register_file_generator::register::*;
+use crate::register_file_generator::access_methods::*;
+
+pub fn pull_existing_json(path: String) -> RegisterFamily {
+    let mut file = File::open(path).expect("Couldn't open the input file!");
+
+    // Read in the string as json
+    let mut json_string = String::new();
+    file.read_to_string(&mut json_string).expect("Failed to read input file as string!");
+    return serde_json::from_str(&json_string).expect("Failed to interpret JSON!");
+}
+
+pub fn add_register_field(register: &mut Register) {
+    print!("Name: ");
+    io::stdout().flush().unwrap();
+    let mut name = String::new();
+    io::stdin().read_line(&mut name).expect("Failed to read line!");
+    let name = name.trim().to_string();
+
+    print!("LSB: ");
+    io::stdout().flush().unwrap();
+    let mut lsb = String::new();
+    io::stdin().read_line(&mut lsb).expect("Failed to read line!");
+    let lsb: u8 = lsb.trim().parse().expect("Invalid input!");
+
+    print!("MSB: ");
+    io::stdout().flush().unwrap();
+    let mut msb = String::new();
+    io::stdin().read_line(&mut msb).expect("Failed to read line!");
+    let msb: u8 = msb.trim().parse().expect("Invalid input!");
+
+    print!("Read: ");
+    io::stdout().flush().unwrap();
+    let mut read = String::new();
+    io::stdin().read_line(&mut read).expect("Failed to read line!");
+    let read: bool = read.trim().parse().expect("Invalid input!");
+
+    print!("Write: ");
+    io::stdout().flush().unwrap();
+    let mut write = String::new();
+    io::stdin().read_line(&mut write).expect("Failed to read line!");
+    let write: bool = write.trim().parse().expect("Invalid input!");
+
+    print!("Negative: ");
+    io::stdout().flush().unwrap();
+    let mut negative = String::new();
+    io::stdin().read_line(&mut negative).expect("Failed to read line!");
+    let negative: bool = negative.trim().parse().expect("Invalid input!");
+
+    register.fields.push(Field {name, lsb, msb, read, write, negative: Some(negative)});
+}
 
 pub fn generate_files(register_family: &RegisterFamily) {
     create_base_register_files(&register_family.register_family_widths, &register_family.register_family);
@@ -118,11 +168,11 @@ fn write_register_to_file(register: &Register, register_family: &String) {
     // Check permissions and create a method if allowed
     for current_field in register.fields.iter() {
         if current_field.read {
-            get_methods.push_str(&current_field.create_get_method(register.size));
+            get_methods.push_str(create_get_method(current_field, register.size).as_str());
         }
 
         if current_field.write {
-            set_methods.push_str(&current_field.create_set_method(register.size));
+            set_methods.push_str(create_set_method(current_field, register.size).as_str());
         }
     }
 

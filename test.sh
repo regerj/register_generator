@@ -13,10 +13,18 @@ ENV_DIR=${TEST_DIR}environment/
 RED="\e[31m"
 GREEN="\e[32m"
 BOLDGREEN="\e[1;32m"
+BOLDRED="\e[1;31m"
 ENDCOLOR="\e[0m"
 
 # Initial setup for test
 cargo build
+RESULT=$?
+if [ ${RESULT} -ne 0 ]
+then
+    echo -e "${BOLDRED}CARGO BUILD FAIL${ENDCOLOR}"
+    exit 1
+fi
+
 mkdir ${ENV_DIR}
 cp ${PROJECT_BINARY} ${ENV_DIR}
 cd ${ENV_DIR}
@@ -24,19 +32,50 @@ cd ${ENV_DIR}
 # Generate our headers
 for filename in ${CFG_DIR}*; do
     ./register_generator generate --path $filename
+    RESULT=$?
+    if [ ${RESULT} -ne 0 ]
+    then
+        echo -e "${BOLDRED}HEADER GENERATION FAIL${ENDCOLOR}"
+        exit 1
+    fi
 done
 
-# Build the test binary
+# Create the build directory if it doesn't exist
+if [ ! -d ${BUILD_DIR} ]
+then
+    mkdir ${BUILD_DIR}
+fi
+
 cd ${BUILD_DIR}
+
+# Generate makefiles
 cmake ..
+RESULT=$?
+if [ ${RESULT} -ne 0 ]
+then
+    echo -e "${BOLDRED}CMAKE GENERATION FAIL${ENDCOLOR}"
+    exit 1
+fi
+
+# Build the test binary
 make
+RESULT=$?
+if [ ${RESULT} -ne 0 ]
+then
+    echo -e "${BOLDRED}BUILD TEST BINARY FAIL${ENDCOLOR}"
+    exit 1
+fi
+
 cd ${ENV_DIR}
 
 # Run the test binary
 ${TEST_BINARY}
-
-echo -e "${BOLDGREEN}SUCCESS${ENDCOLOR}"
-
-# Teardown the environment
-cd ..
-rm -rf ./environment
+RESULT=$?
+if [ ${RESULT} -eq 0 ]
+then
+    echo -e "${BOLDGREEN}SUCCESS${ENDCOLOR}"
+    exit 0
+else
+    echo -e "${BOLDRED}TEST FAIL${ENDCOLOR}"
+    exit 1
+fi
