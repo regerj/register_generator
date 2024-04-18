@@ -49,7 +49,7 @@ pub fn add_register_handler(args: AddRegisterArgs) {
         .create(false)
         .truncate(true)
         .open(args.path.clone())
-        .unwrap();
+        .expect("Could not open JSON file!");
 
     match file.write_all(serde_json::to_string_pretty(&register_family).unwrap().as_bytes()) {
         Ok(_) => {},
@@ -70,7 +70,7 @@ pub fn bootstrap_handler(args: BootstrapArgs) {
         .create(true)
         .truncate(true)
         .open(args.path.clone())
-        .unwrap();
+        .expect("Could not open or create JSON file!");
 
     let reg_family = RegisterFamily {
         register_family: args.name.clone(),
