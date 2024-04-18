@@ -15,6 +15,8 @@
 TEST(Test16Bit, GetTest) {
     HighLow_16 reg;
 
+    EXPECT_EQ(1, 2);
+
     EXPECT_EQ(reg.get_low(), ZERO);
     EXPECT_EQ(reg.get_high(), ZERO);
 
