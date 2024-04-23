@@ -2,7 +2,7 @@ use crossterm::event::{self, Event, KeyCode};
 use std::io;
 use tui::{
     backend::Backend,
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, Borders, Tabs},
@@ -40,7 +40,7 @@ impl App {
 
 pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
     loop {
-        terminal.draw(|f| ui(f, &app))?;
+        terminal.draw(|f| ui(f, &mut app))?;
 
         if let Event::Key(key) = event::read()? {
             match key.code {
@@ -53,26 +53,27 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
     }
 }
 
-fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
+fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let size = f.size();
+
+    // Not sure what this does yet, look into in the future
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(5)
         .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
         .split(size);
 
+    // Full screen block I think
     let block = Block::default().style(Style::default().bg(Color::White).fg(Color::Black));
     f.render_widget(block, size);
+
+    // Create the tabs
     let titles = app
         .register_family
         .registers
         .iter()
-        .map(|t| {
-            let (first, rest) = t.name.split_at(1);
-            Spans::from(vec![
-                Span::styled(first, Style::default().fg(Color::Red)),
-                Span::styled(rest, Style::default().fg(Color::Green)),
-            ])
+        .map(|register| {
+            Spans::from(Span::styled(register.name.clone(), Style::default().fg(Color::Green)))
         })
         .collect();
     let tabs = Tabs::new(titles)
@@ -85,12 +86,23 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &App) {
                 .bg(Color::Black),
         );
     f.render_widget(tabs, chunks[0]);
-    let inner = match app.index {
-        0 => Block::default().title("Inner 0").borders(Borders::ALL),
-        1 => Block::default().title("Inner 1").borders(Borders::ALL),
-        2 => Block::default().title("Inner 2").borders(Borders::ALL),
-        3 => Block::default().title("Inner 3").borders(Borders::ALL),
-        _ => unreachable!(),
-    };
-    f.render_widget(inner, chunks[1]);
+
+    // Create register view
+    // let inner = match app.index {
+    //     0 => Block::default().title("Inner 0").borders(Borders::ALL),
+    //     1 => Block::default().title("Inner 1").borders(Borders::ALL),
+    //     2 => Block::default().title("Inner 2").borders(Borders::ALL),
+    //     3 => Block::default().title("Inner 3").borders(Borders::ALL),
+    //     _ => unreachable!(),
+    // };
+    draw_register_view(f, app, chunks[1]);
+}
+
+fn draw_register_view<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(5)
+        .constraints([Constraint::Length(5), Constraint::Min(0)].as_ref())
+        .split(area);
+    // Block::default().title("EXAMPLE_TITLE").borders(Borders::ALL)
 }
