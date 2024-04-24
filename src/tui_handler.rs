@@ -4,7 +4,7 @@ use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    text::{Span, Spans},
+    text::Spans,
     widgets::{Block, Borders, Tabs, Paragraph},
     Frame, Terminal,
 };
@@ -22,6 +22,7 @@ pub struct App {
     pub register_family: RegisterFamily,
     pub register_index: usize,
     pub field_index: usize,
+    pub field_info_index: usize,
     pub field_selected: bool,
 }
 
@@ -31,6 +32,7 @@ impl App {
             register_family: pull_existing_json(path),
             register_index: 0,
             field_index: 0,
+            field_info_index: 0,
             field_selected: false,
         }
     }
@@ -38,6 +40,7 @@ impl App {
     pub fn next_register(&mut self) {
         // Reset field index
         self.field_index = 0;
+        self.field_info_index = 0;
 
         self.register_index = (self.register_index + 1) % self.register_family.registers.len();
     }
@@ -45,6 +48,7 @@ impl App {
     pub fn previous_register(&mut self) {
         // Reset field index
         self.field_index = 0;
+        self.field_info_index = 0;
 
         if self.register_index > 0 {
             self.register_index -= 1;
@@ -54,10 +58,14 @@ impl App {
     }
 
     pub fn next_field(&mut self) {
+        self.field_info_index = 0;
+
         self.field_index = (self.field_index + 1) % self.register_family.registers[self.register_index].fields.len();
     }
 
     pub fn previous_field(&mut self) {
+        self.field_info_index = 0;
+
         if self.field_index > 0 {
             self.field_index -= 1;
         } else {
@@ -134,7 +142,7 @@ fn draw_register_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: B
         .registers
         .iter()
         .map(|register| {
-            Spans::from(Span::styled(register.name.clone(), Style::default().fg(Color::White).bg(Color::Magenta)))
+            Spans::from(register.name.clone())
         })
         .collect();
     let tabs = Tabs::new(titles)
@@ -144,7 +152,7 @@ fn draw_register_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: B
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(BG_COLOR),
+                .bg(Color::Magenta),
         );
     f.render_widget(tabs, area);
 }
@@ -195,7 +203,7 @@ fn draw_field_view<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
         .split(area);
 
     draw_field_tabs(f, app, chunks[0]);
-    draw_field_info(f, app, chunks[1]);
+    draw_field_info_tabs(f, app, chunks[1]);
 }
 
 fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
@@ -206,7 +214,7 @@ fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
         .fields
         .iter()
         .map(|field| {
-            Spans::from(Span::styled(field.name.clone(), Style::default().fg(Color::White).bg(Color::Magenta)))
+            Spans::from(field.name.clone())
         })
         .collect();
     let tabs = VerticalTabs::new(titles)
@@ -216,21 +224,27 @@ fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(BG_COLOR),
+                .bg(Color::Magenta),
         );
     f.render_widget(tabs, area);
 }
 
-fn draw_field_info<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+fn draw_field_info_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
     let field = &app.register_family.registers[app.register_index].fields[app.field_index];
-    let text = vec![
+    let titles = vec![
         Spans::from(format!("LSB: {}", field.lsb)),
         Spans::from(format!("MSB: {}", field.msb)),
         Spans::from(format!("Read: {}", field.read)),
         Spans::from(format!("Write: {}", field.write)),
         Spans::from(format!("Negative: {}", if let Some(n) = field.negative {n} else {false}))];
-    let paragraph = Paragraph::new(text.clone())
-        .style(Style::default().bg(BG_COLOR).fg(Color::White)).block(Block::default().borders(Borders::ALL).title("Field Information"));
-
-    f.render_widget(paragraph, area);
+    let tabs = VerticalTabs::new(titles)
+        .block(Block::default().borders(Borders::ALL).title("Fields"))
+        .select(app.field_info_index)
+        .style(Style::default().fg(Color::White))
+        .highlight_style(
+            Style::default()
+                .add_modifier(Modifier::BOLD)
+                .bg(Color::Magenta),
+        );
+    f.render_widget(tabs, area);
 }
