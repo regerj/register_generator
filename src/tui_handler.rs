@@ -1,5 +1,5 @@
 use crossterm::event::{self, Event, KeyCode};
-use std::{io, fmt::format};
+use std::io;
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
