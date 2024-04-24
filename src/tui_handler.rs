@@ -72,6 +72,20 @@ impl App {
             self.field_index = self.register_family.registers[self.register_index].fields.len() - 1;
         }
     }
+
+    pub fn next_field_info(&mut self) {
+        // Mod 5 because there are 5 field info elements
+        self.field_info_index = (self.field_info_index + 1) % 5;
+    }
+
+    pub fn previous_field_info(&mut self) {
+        if self.field_info_index > 0 {
+            self.field_info_index -= 1;
+        } else {
+            // 4 because there are 5 field info elements
+            self.field_info_index = 4;
+        }
+    }
 }
 
 pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
@@ -97,14 +111,14 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                 },
                 KeyCode::Up => {
                     if app.field_selected {
-                        // Do nothing rn
+                        app.previous_field_info();
                     } else {
                         app.previous_field();
                     }
                 },
                 KeyCode::Down => {
                     if app.field_selected {
-                        // Do nothing rn
+                        app.next_field_info();
                     } else {
                         app.next_field();
                     }
