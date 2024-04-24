@@ -2,6 +2,7 @@ mod reg_gen;
 mod cli_structs;
 mod command_handlers;
 mod tui_handler;
+mod vertical_tab;
 
 // Clap
 use clap::Parser;
