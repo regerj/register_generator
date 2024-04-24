@@ -3,24 +3,9 @@ use tui::text::*;
 use tui::widgets::*;
 use tui::style::*;
 use tui::layout::*;
-use tui::symbols::line;
 
-/// A widget to display available tabs in a multiple panels context.
-///
-/// # Examples
-///
-/// ```
-/// # use tui::widgets::{Block, Borders, Tabs};
-/// # use tui::style::{Style, Color};
-/// # use tui::text::{Spans};
-/// # use tui::symbols::{DOT};
-/// let titles = ["Tab1", "Tab2", "Tab3", "Tab4"].iter().cloned().map(Spans::from).collect();
-/// Tabs::new(titles)
-///     .block(Block::default().title("Tabs").borders(Borders::ALL))
-///     .style(Style::default().fg(Color::White))
-///     .highlight_style(Style::default().fg(Color::Yellow))
-///     .divider(DOT);
-/// ```
+// My custom widget for vertical tabs since TUI doesn't support them natively for some reason
+
 #[derive(Debug, Clone)]
 pub struct VerticalTabs<'a> {
     /// A block to wrap this widget in if necessary
@@ -33,8 +18,8 @@ pub struct VerticalTabs<'a> {
     style: Style,
     /// Style to apply to the selected item
     highlight_style: Style,
-    /// Tab divider
-    divider: Span<'a>,
+    // Tab divider
+    // divider: Span<'a>,
 }
 
 impl<'a> VerticalTabs<'a> {
@@ -45,7 +30,7 @@ impl<'a> VerticalTabs<'a> {
             selected: 0,
             style: Default::default(),
             highlight_style: Default::default(),
-            divider: Span::raw(line::VERTICAL),
+            // divider: Span::raw(line::HORIZONTAL),
         }
     }
 
@@ -69,13 +54,13 @@ impl<'a> VerticalTabs<'a> {
         self
     }
 
-    pub fn divider<T>(mut self, divider: T) -> VerticalTabs<'a>
-    where
-        T: Into<Span<'a>>,
-    {
-        self.divider = divider.into();
-        self
-    }
+    // pub fn divider<T>(mut self, divider: T) -> VerticalTabs<'a>
+    // where
+    //     T: Into<Span<'a>>,
+    // {
+    //     self.divider = divider.into();
+    //     self
+    // }
 }
 
 impl<'a> Widget for VerticalTabs<'a> {
@@ -83,8 +68,10 @@ impl<'a> Widget for VerticalTabs<'a> {
         buf.set_style(area, self.style);
         let tabs_area = match self.block.take() {
             Some(b) => {
-                let inner_area = b.inner(area);
+                let mut inner_area = b.inner(area);
                 b.render(area, buf);
+                // I do this to align it better with the box
+                inner_area.y -= 1;
                 inner_area
             }
             None => area,
@@ -94,34 +81,34 @@ impl<'a> Widget for VerticalTabs<'a> {
             return;
         }
 
-        let mut x = tabs_area.top();
+        let mut y = tabs_area.top();
         let titles_length = self.titles.len();
         for (i, title) in self.titles.into_iter().enumerate() {
             let last_title = titles_length - 1 == i;
-            x = x.saturating_add(1);
-            let remaining_width = tabs_area.bottom().saturating_sub(x);
-            if remaining_width == 0 {
+            y = y.saturating_add(1);
+            let remaining_height = tabs_area.bottom().saturating_sub(y);
+            if remaining_height == 0 {
                 break;
             }
-            let pos = buf.set_spans(x, tabs_area.left(), &title, remaining_width);
+            let pos = buf.set_spans(tabs_area.left(), y, &title, remaining_height);
             if i == self.selected {
                 buf.set_style(
                     Rect {
-                        x,
-                        y: tabs_area.left(),
-                        width: pos.0.saturating_sub(x),
+                        x: tabs_area.left(),
+                        y,
+                        width: title.width() as u16,
                         height: 1,
                     },
                     self.highlight_style,
                 );
             }
-            x = pos.0.saturating_add(1);
-            let remaining_width = tabs_area.bottom().saturating_sub(x);
-            if remaining_width == 0 || last_title {
+            y = pos.1.saturating_add(1);
+            let remaining_height = tabs_area.bottom().saturating_sub(y);
+            if remaining_height == 0 || last_title {
                 break;
             }
-            let pos = buf.set_span(x, tabs_area.top(), &self.divider, remaining_width);
-            x = pos.0;
+            // let pos = buf.set_span(tabs_area.left(), y, &self.divider, remaining_height);
+            y = pos.1;
         }
     }
 }

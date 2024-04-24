@@ -1,5 +1,5 @@
 use crossterm::event::{self, Event, KeyCode};
-use std::io;
+use std::{io, fmt::format};
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -180,7 +180,6 @@ fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
         .block(Block::default().borders(Borders::ALL).title("Fields"))
         .select(app.field_index)
         .style(Style::default().fg(Color::Cyan))
-        .divider("\n\r")
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
@@ -190,5 +189,15 @@ fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
 }
 
 fn draw_field_info<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+    let field = &app.register_family.registers[app.register_index].fields[app.field_index];
+    let text = vec![
+        Spans::from(format!("LSB: {}", field.lsb)),
+        Spans::from(format!("MSB: {}", field.msb)),
+        Spans::from(format!("Read: {}", field.read)),
+        Spans::from(format!("Write: {}", field.write)),
+        Spans::from(format!("Negative: {}", if let Some(n) = field.negative {n} else {false}))];
+    let paragraph = Paragraph::new(text.clone())
+        .style(Style::default().bg(Color::White).fg(Color::Black)).block(Block::default().borders(Borders::ALL).title("Field Information"));
 
+    f.render_widget(paragraph, area);
 }
