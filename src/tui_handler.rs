@@ -152,7 +152,7 @@ fn draw_register_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: B
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(Color::Magenta),
+                .bg(if !app.field_selected { Color::LightMagenta } else { Color::DarkGray }),
         );
     f.render_widget(tabs, area);
 }
@@ -224,7 +224,7 @@ fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(Color::Magenta),
+                .bg(if !app.field_selected { Color::LightMagenta } else { Color::DarkGray }),
         );
     f.render_widget(tabs, area);
 }
@@ -244,7 +244,7 @@ fn draw_field_info_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B:
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(Color::Magenta),
+                .bg(if app.field_selected { Color::LightMagenta } else { Color::DarkGray }),
         );
     f.render_widget(tabs, area);
 }
