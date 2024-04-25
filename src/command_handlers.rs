@@ -2,12 +2,25 @@ use std::fs::OpenOptions;
 use std::io;
 use std::io::Write;
 
-use crate::cli_handler::*;
-use crate::register_file_generator::register::*;
-use crate::register_file_generator::file_generator::*;
+use crate::cli_structs::*;
+use crate::reg_gen::register::*;
+use crate::reg_gen::json_handling::*;
+use crate::reg_gen::header_handling::*;
+use crate::tui_handler::*;
 
-pub fn add_register_handler(args: AddRegisterArgs) {
-    let mut register_family = pull_existing_json(args.path.clone());
+use crossterm::{
+    event::{DisableMouseCapture, EnableMouseCapture},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+};
+
+use tui::{
+    backend::CrosstermBackend,
+    Terminal,
+};
+
+pub fn add_register_handler(args: AddRegisterArgs) -> Result<(), std::io::Error> {
+    let mut register_family = pull_existing_json(&args.path);
 
     if !register_family.register_family_widths.contains(&args.size) {
         register_family.register_family_widths.push(args.size);
@@ -29,7 +42,7 @@ pub fn add_register_handler(args: AddRegisterArgs) {
 
         match response.as_str() {
             "y" => {
-                add_register_field(&mut register);
+                register.add_register_field();
             },
             "n" => {
                 break;
@@ -55,15 +68,18 @@ pub fn add_register_handler(args: AddRegisterArgs) {
         Ok(_) => {},
         Err(why) => panic!("Couldn't write to {}: {}", args.path, why)
     }
+
+    Ok(())
 }
 
-pub fn generate_handler(args: GenerateArgs) {
-    let register_family = pull_existing_json(args.path);
+pub fn generate_handler(args: GenerateArgs) -> Result<(), std::io::Error> {
+    let register_family = pull_existing_json(&args.path);
     // Generate the files
     generate_files(&register_family);
+    Ok(())
 }
 
-pub fn bootstrap_handler(args: BootstrapArgs) {
+pub fn bootstrap_handler(args: BootstrapArgs) -> Result<(), std::io::Error> {
     let mut file = OpenOptions::new()
         .read(true)
         .write(true)
@@ -82,4 +98,30 @@ pub fn bootstrap_handler(args: BootstrapArgs) {
         Ok(_) => {},
         Err(why) => panic!("Couldn't write to {}: {}", args.path, why)
     }
+
+    Ok(())
+}
+
+pub fn tui_handler(args: TuiArgs) -> Result<(), std::io::Error> {
+    // setup terminal
+    enable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+    let backend = CrosstermBackend::new(stdout);
+    let mut terminal = Terminal::new(backend)?;
+
+    // create app and run it
+    let app = App::new(args.path);
+    let res = run_app(&mut terminal, app);
+
+    // restore terminal
+    disable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
+    terminal.show_cursor()?;
+
+    return res;
 }

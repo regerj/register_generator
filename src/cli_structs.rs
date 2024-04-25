@@ -11,6 +11,8 @@ pub enum Commands {
     Generate(GenerateArgs),
     /// Creates an initial JSON file for a new register family
     Bootstrap(BootstrapArgs),
+    /// [EXPERIMENTAL] Enters an interactive terminal user interface
+    Tui(TuiArgs),
 }
 
 #[derive(Parser)]
@@ -50,6 +52,13 @@ pub struct BootstrapArgs {
     /// Name of the register family
     #[arg(short, long)]
     pub name: String,
+}
+
+#[derive(Args)]
+pub struct TuiArgs {
+    /// Path to the JSON file
+    #[arg(short, long)]
+    pub path: String,
 }
 
 fn register_size_supported(size: &str) -> Result<u8, String> {
