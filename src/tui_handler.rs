@@ -30,6 +30,7 @@ pub struct App {
     pub field_index: usize,
     pub field_info_index: usize,
     pub state: AppState,
+    pub input: String,
 }
 
 impl App {
@@ -40,6 +41,7 @@ impl App {
             field_index: 0,
             field_info_index: 0,
             state: AppState::SelectRegisterAndField,
+            input: String::new(),
         }
     }
 
@@ -99,50 +101,46 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
         terminal.draw(|f| ui(f, &mut app))?;
 
         if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Char('q') => return Ok(()),
-                KeyCode::Right => {
-                    match app.state {
-                        AppState::SelectRegisterAndField => app.next_register(),
+            match app.state {
+                AppState::SelectRegisterAndField => {
+                    match key.code {
+                        KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Right => app.next_register(),
+                        KeyCode::Left => app.previous_register(),
+                        KeyCode::Up => app.previous_field(),
+                        KeyCode::Down => app.next_field(),
+                        KeyCode::Enter => app.state = AppState::SelectFieldInfo,
                         _ => ()
                     }
                 },
-                KeyCode::Left => {
-                    match app.state {
-                        AppState::SelectRegisterAndField => app.previous_register(),
+                AppState::SelectFieldInfo => {
+                    match key.code {
+                        KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Up => app.previous_field_info(),
+                        KeyCode::Down => app.next_field_info(),
+                        KeyCode::Enter => app.state = AppState::EditFieldInfo,
+                        KeyCode::Esc => app.state = AppState::SelectRegisterAndField,
                         _ => ()
                     }
                 },
-                KeyCode::Up => {
-                    match app.state {
-                        AppState::SelectRegisterAndField => app.previous_field(),
-                        AppState::SelectFieldInfo => app.previous_field_info(),
+                AppState::EditFieldInfo => {
+                    match key.code {
+                        KeyCode::Char(ch) => {
+                            app.input.push(ch);
+                        },
+                        KeyCode::Backspace => {
+                            app.input.pop();
+                        },
+                        KeyCode::Enter => {
+                            // TODO: Handle this shit
+                        },
+                        KeyCode::Esc => {
+                            app.input.clear();
+                            app.state = AppState::SelectFieldInfo;
+                        },
                         _ => ()
-                    }
-                },
-                KeyCode::Down => {
-                    match app.state {
-                        AppState::SelectRegisterAndField => app.next_field(),
-                        AppState::SelectFieldInfo => app.next_field_info(),
-                        _ => ()
-                    }
-                },
-                KeyCode::Enter => {
-                    app.state = match app.state {
-                        AppState::SelectRegisterAndField => AppState::SelectFieldInfo,
-                        AppState::SelectFieldInfo => AppState::EditFieldInfo,
-                        AppState::EditFieldInfo => AppState::EditFieldInfo,
                     }
                 }
-                KeyCode::Esc => {
-                    app.state = match app.state {
-                        AppState::SelectRegisterAndField => AppState::SelectRegisterAndField,
-                        AppState::SelectFieldInfo => AppState::SelectRegisterAndField,
-                        AppState::EditFieldInfo => AppState::SelectFieldInfo,
-                    }
-                    
-                }
-                _ => {}
             }
         }
     }
@@ -293,16 +291,36 @@ fn draw_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
     // By making a vertical layout of 3 chunks with center chunk having defined length, we can
     // center text
     let chunks = Layout::default()
+        .direction(Direction::Vertical)
         .margin(1)
         .constraints([Constraint::Ratio(1, 2), Constraint::Length(1), Constraint::Ratio(1, 2)].as_ref())
         .split(area);
 
-    let key_value = get_selected_field_as_string(app);
-    let text = vec![Spans::from(format!("Set {} to: {}", key_value.0, key_value.1))];
+    // let block = Block::default().style(Style::default().bg(Color::Red));
+    // f.render_widget(block, chunks[1]);
+    draw_input_prompt(f, app, chunks[1]);
+}
 
-    let paragraph = Paragraph::new(text.clone())
-        .alignment(tui::layout::Alignment::Center).style(Style::default().bg(BG_COLOR).fg(Color::White).add_modifier(Modifier::BOLD));
+fn draw_input_prompt<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+    let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Length(app.input.len() as u16), Constraint::Length(1), Constraint::Min(0)].as_ref())
+        .split(area);
+
+    let (key, _value) = get_selected_field_as_string(app);
+    let text = vec![Spans::from(format!("Set {} to:", key))];
+
+    let paragraph = Paragraph::new(text)
+        .alignment(tui::layout::Alignment::Right).style(Style::default().bg(BG_COLOR).fg(Color::White));
+    f.render_widget(paragraph, chunks[0]);
+
+    let text = vec![Spans::from(app.input.clone())];
+    let paragraph = Paragraph::new(text)
+        .alignment(tui::layout::Alignment::Left).style(Style::default().bg(Color::Magenta).fg(Color::White));
     f.render_widget(paragraph, chunks[1]);
+
+    let cursor_block = Block::default().style(Style::default().bg(Color::White));
+    f.render_widget(cursor_block, chunks[2]);
 }
 
 fn get_selected_field_as_string(app: &App) -> (String, String) {
