@@ -20,5 +20,5 @@ jobs:
         if: success() || failure()  # run this step even if the previous step failed
         with:
           name: Tests
-          path: reports/jest-*.xml
+          path: test/environment/test-report.xml
           reporter: jest-junit

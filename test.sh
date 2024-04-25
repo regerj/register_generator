@@ -69,7 +69,7 @@ fi
 cd ${ENV_DIR}
 
 # Run the test binary
-${TEST_BINARY}
+${TEST_BINARY} --gtest_output=xml:test-report.xml
 RESULT=$?
 if [ ${RESULT} -eq 0 ]
 then
