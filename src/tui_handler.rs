@@ -1,5 +1,5 @@
 use crossterm::event::{self, Event, KeyCode};
-use std::io;
+use std::{io::{self, Write}, fs::OpenOptions};
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
@@ -25,6 +25,7 @@ pub enum AppState {
 }
 
 pub struct App {
+    pub original_path: String,
     pub register_family: RegisterFamily,
     pub register_index: usize,
     pub field_index: usize,
@@ -36,7 +37,8 @@ pub struct App {
 impl App {
     pub fn new(path: String) -> App {
         App {
-            register_family: pull_existing_json(path),
+            original_path: path.clone(),
+            register_family: pull_existing_json(&path),
             register_index: 0,
             field_index: 0,
             field_info_index: 0,
@@ -126,6 +128,20 @@ impl App {
             _ => (),
         }
     }
+    pub fn write_to_file(&mut self) -> Result<(), std::io::Error> {
+        let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(false)
+            .truncate(true)
+            .open(self.original_path.clone())
+            .expect("Could not open JSON file!");
+
+        return match file.write_all(serde_json::to_string_pretty(&self.register_family).unwrap().as_bytes()) {
+            Ok(_) => Ok(()),
+            Err(why) => Err(std::io::Error::new(why.kind(), format!("Couldn't write to {}: {}", self.original_path, why))),
+        };
+    }
 }
 
 pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
@@ -136,7 +152,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
             match app.state {
                 AppState::SelectRegisterAndField => {
                     match key.code {
-                        KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Char('q') => return app.write_to_file(),
                         KeyCode::Right => app.next_register(),
                         KeyCode::Left => app.previous_register(),
                         KeyCode::Up => app.previous_field(),
@@ -147,7 +163,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                 },
                 AppState::SelectFieldInfo => {
                     match key.code {
-                        KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Char('q') => return app.write_to_file(),
                         KeyCode::Up => app.previous_field_info(),
                         KeyCode::Down => app.next_field_info(),
                         KeyCode::Enter => app.state = AppState::EditFieldInfo,

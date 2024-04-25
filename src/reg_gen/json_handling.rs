@@ -2,7 +2,7 @@ use std::{fs::File, io::Read};
 
 use crate::reg_gen::register::*;
 
-pub fn pull_existing_json(path: String) -> RegisterFamily {
+pub fn pull_existing_json(path: &String) -> RegisterFamily {
     let mut file = File::open(path).expect("Couldn't open the input file!");
 
     // Read in the string as json

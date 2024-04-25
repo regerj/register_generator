@@ -20,7 +20,7 @@ use tui::{
 };
 
 pub fn add_register_handler(args: AddRegisterArgs) -> Result<(), std::io::Error> {
-    let mut register_family = pull_existing_json(args.path.clone());
+    let mut register_family = pull_existing_json(&args.path);
 
     if !register_family.register_family_widths.contains(&args.size) {
         register_family.register_family_widths.push(args.size);
@@ -73,7 +73,7 @@ pub fn add_register_handler(args: AddRegisterArgs) -> Result<(), std::io::Error>
 }
 
 pub fn generate_handler(args: GenerateArgs) -> Result<(), std::io::Error> {
-    let register_family = pull_existing_json(args.path);
+    let register_family = pull_existing_json(&args.path);
     // Generate the files
     generate_files(&register_family);
     Ok(())
@@ -123,9 +123,5 @@ pub fn tui_handler(args: TuiArgs) -> Result<(), std::io::Error> {
     )?;
     terminal.show_cursor()?;
 
-    if let Err(err) = res {
-        println!("{:?}", err)
-    }
-
-    Ok(())
+    return res;
 }
