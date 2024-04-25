@@ -3,10 +3,10 @@ name: Build on PR and push to master
 on:
   pull_request:
     branches:
-      - [ master, test_results] 
+      - [ master, test_results ]
   push:
     branches:
-      - [ master, test_results] 
+      - [ master, test_results ]
 
 jobs:
   build:
@@ -17,7 +17,7 @@ jobs:
       - run: ./test.sh
       - name: Test Report
         uses: dorny/test-reporter@v1
-        if: success() || failure()    # run this step even if the previous step failed
+        if: success() || failure()  # run this step even if the previous step failed
         with:
           name: Tests
           path: reports/jest-*.xml
