@@ -94,6 +94,38 @@ impl App {
             self.field_info_index = 4;
         }
     }
+
+    pub fn set_field_info(&mut self) {
+        let field = &mut self.register_family.registers[self.register_index].fields[self.field_index];
+        match self.field_info_index {
+            0 => {
+                if let Ok(x) = self.input.trim().parse() {
+                    field.lsb = x;
+                }
+            },
+            1 => {
+                if let Ok(x) = self.input.trim().parse() {
+                    field.msb = x;
+                }
+            },
+            2 => {
+                if let Ok(x) = self.input.trim().parse() {
+                    field.read = x;
+                }
+            },
+            3 => {
+                if let Ok(x) = self.input.trim().parse() {
+                    field.write = x;
+                }
+            },
+            4 => {
+                if let Ok(x) = self.input.trim().parse() {
+                    field.negative = Some(x);
+                }
+            },
+            _ => (),
+        }
+    }
 }
 
 pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
@@ -132,7 +164,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                             app.input.pop();
                         },
                         KeyCode::Enter => {
-                            // TODO: Handle this shit
+                            app.set_field_info();
                         },
                         KeyCode::Esc => {
                             app.input.clear();
