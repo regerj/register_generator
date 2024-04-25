@@ -5,7 +5,7 @@ use tui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::Spans,
-    widgets::{Block, Borders, Tabs, Paragraph},
+    widgets::{Block, Borders, Tabs, Paragraph, Clear},
     Frame, Terminal,
 };
 
@@ -18,12 +18,18 @@ use crate::vertical_tab::*;
 
 const BG_COLOR: Color = Color::Rgb(40, 44, 52);
 
+pub enum AppState {
+    SelectRegisterAndField,
+    SelectFieldInfo,
+    EditFieldInfo,
+}
+
 pub struct App {
     pub register_family: RegisterFamily,
     pub register_index: usize,
     pub field_index: usize,
     pub field_info_index: usize,
-    pub field_selected: bool,
+    pub state: AppState,
 }
 
 impl App {
@@ -33,7 +39,7 @@ impl App {
             register_index: 0,
             field_index: 0,
             field_info_index: 0,
-            field_selected: false,
+            state: AppState::SelectRegisterAndField,
         }
     }
 
@@ -96,35 +102,46 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
             match key.code {
                 KeyCode::Char('q') => return Ok(()),
                 KeyCode::Right => {
-                    if app.field_selected {
-                        // Do nothing rn
-                    } else {
-                        app.next_register();
+                    match app.state {
+                        AppState::SelectRegisterAndField => app.next_register(),
+                        _ => ()
                     }
                 },
                 KeyCode::Left => {
-                    if app.field_selected {
-                        // Do nothing rn
-                    } else {
-                        app.previous_register();
+                    match app.state {
+                        AppState::SelectRegisterAndField => app.previous_register(),
+                        _ => ()
                     }
                 },
                 KeyCode::Up => {
-                    if app.field_selected {
-                        app.previous_field_info();
-                    } else {
-                        app.previous_field();
+                    match app.state {
+                        AppState::SelectRegisterAndField => app.previous_field(),
+                        AppState::SelectFieldInfo => app.previous_field_info(),
+                        _ => ()
                     }
                 },
                 KeyCode::Down => {
-                    if app.field_selected {
-                        app.next_field_info();
-                    } else {
-                        app.next_field();
+                    match app.state {
+                        AppState::SelectRegisterAndField => app.next_field(),
+                        AppState::SelectFieldInfo => app.next_field_info(),
+                        _ => ()
                     }
                 },
-                KeyCode::Enter => app.field_selected = true,
-                KeyCode::Esc => app.field_selected = false,
+                KeyCode::Enter => {
+                    app.state = match app.state {
+                        AppState::SelectRegisterAndField => AppState::SelectFieldInfo,
+                        AppState::SelectFieldInfo => AppState::EditFieldInfo,
+                        AppState::EditFieldInfo => AppState::EditFieldInfo,
+                    }
+                }
+                KeyCode::Esc => {
+                    app.state = match app.state {
+                        AppState::SelectRegisterAndField => AppState::SelectRegisterAndField,
+                        AppState::SelectFieldInfo => AppState::SelectRegisterAndField,
+                        AppState::EditFieldInfo => AppState::SelectFieldInfo,
+                    }
+                    
+                }
                 _ => {}
             }
         }
@@ -147,6 +164,10 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
     draw_register_tabs(f, app, chunks[0]);
     draw_register_view(f, app, chunks[1]);
+    
+    if matches!(app.state, AppState::EditFieldInfo) {
+        draw_popup(f, app, size);
+    }
 }
 
 fn draw_register_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
@@ -166,7 +187,7 @@ fn draw_register_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: B
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(if !app.field_selected { Color::LightMagenta } else { Color::DarkGray }),
+                .bg(if matches!(app.state, AppState::SelectRegisterAndField) { Color::LightMagenta } else { Color::DarkGray }),
         );
     f.render_widget(tabs, area);
 }
@@ -238,7 +259,7 @@ fn draw_field_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Back
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(if !app.field_selected { Color::LightMagenta } else { Color::DarkGray }),
+                .bg(if matches!(app.state, AppState::SelectRegisterAndField) { Color::LightMagenta } else { Color::DarkGray }),
         );
     f.render_widget(tabs, area);
 }
@@ -258,7 +279,66 @@ fn draw_field_info_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B:
         .highlight_style(
             Style::default()
                 .add_modifier(Modifier::BOLD)
-                .bg(if app.field_selected { Color::LightMagenta } else { Color::DarkGray }),
+                .bg(if matches!(app.state, AppState::SelectFieldInfo) { Color::LightMagenta } else { Color::DarkGray }),
         );
     f.render_widget(tabs, area);
+}
+
+fn draw_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+    let area = centered_rect(60, 20, area);
+    let block = Block::default().title("Popup").borders(Borders::ALL);
+    f.render_widget(Clear, area); //this clears out the background
+    f.render_widget(block, area);
+
+    // By making a vertical layout of 3 chunks with center chunk having defined length, we can
+    // center text
+    let chunks = Layout::default()
+        .margin(1)
+        .constraints([Constraint::Ratio(1, 2), Constraint::Length(1), Constraint::Ratio(1, 2)].as_ref())
+        .split(area);
+
+    let key_value = get_selected_field_as_string(app);
+    let text = vec![Spans::from(format!("Set {} to: {}", key_value.0, key_value.1))];
+
+    let paragraph = Paragraph::new(text.clone())
+        .alignment(tui::layout::Alignment::Center).style(Style::default().bg(BG_COLOR).fg(Color::White).add_modifier(Modifier::BOLD));
+    f.render_widget(paragraph, chunks[1]);
+}
+
+fn get_selected_field_as_string(app: &App) -> (String, String) {
+    let field = &app.register_family.registers[app.register_index].fields[app.field_index];
+    match app.field_info_index {
+        0 => (String::from("LSB"), field.lsb.to_string()),
+        1 => (String::from("MSB"), field.msb.to_string()),
+        2 => (String::from("Read"), field.read.to_string()),
+        3 => (String::from("Write"), field.write.to_string()),
+        4 => (String::from("Negative"), match field.negative { Some(x) => { x.to_string() }, None => { false.to_string() } }),
+        _ => (String::from("ERROR"), String::from("ERROR")),
+    }
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                Constraint::Percentage((100 - percent_y) / 2),
+                Constraint::Percentage(percent_y),
+                Constraint::Percentage((100 - percent_y) / 2),
+            ]
+            .as_ref(),
+        )
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(
+            [
+                Constraint::Percentage((100 - percent_x) / 2),
+                Constraint::Percentage(percent_x),
+                Constraint::Percentage((100 - percent_x) / 2),
+            ]
+            .as_ref(),
+        )
+        .split(popup_layout[1])[1]
 }
