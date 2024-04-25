@@ -19,6 +19,6 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()  # run this step even if the previous step failed
         with:
-          name: Tests
+          name: tests
           path: test/environment/test-report.xml
           reporter: jest-junit
