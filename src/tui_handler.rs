@@ -302,23 +302,27 @@ fn draw_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
 }
 
 fn draw_input_prompt<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+    // Splitting into 4 chunks, chunk 0 is the prompt, chunk 1 is the input, chunk 2 is the cursor,
+    // and chunk 3 pushes cursor to end of prompt
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(50), Constraint::Length(app.input.len() as u16), Constraint::Length(1), Constraint::Min(0)].as_ref())
         .split(area);
 
+    // Draw the prompt
     let (key, _value) = get_selected_field_as_string(app);
-    let text = vec![Spans::from(format!("Set {} to:", key))];
-
+    let text = vec![Spans::from(format!("Set {} to: ", key))];
     let paragraph = Paragraph::new(text)
         .alignment(tui::layout::Alignment::Right).style(Style::default().bg(BG_COLOR).fg(Color::White));
     f.render_widget(paragraph, chunks[0]);
 
+    // Draw the current input
     let text = vec![Spans::from(app.input.clone())];
     let paragraph = Paragraph::new(text)
         .alignment(tui::layout::Alignment::Left).style(Style::default().bg(Color::Magenta).fg(Color::White));
     f.render_widget(paragraph, chunks[1]);
 
+    // Draw the cursor
     let cursor_block = Block::default().style(Style::default().bg(Color::White));
     f.render_widget(cursor_block, chunks[2]);
 }
