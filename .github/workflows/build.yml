@@ -3,10 +3,10 @@ name: Build on PR and push to master
 on:
   pull_request:
     branches:
-      - [ master, test_results ]
+      - test_results
   push:
     branches:
-      - [ master, test_results ]
+      - test_results
 
 jobs:
   build:
