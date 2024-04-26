@@ -22,6 +22,7 @@ pub enum AppState {
     SelectRegisterAndField,
     SelectFieldInfo,
     EditFieldInfo,
+    AddRegister,
 }
 
 pub struct App {
@@ -158,6 +159,19 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                         KeyCode::Up => app.previous_field(),
                         KeyCode::Down => app.next_field(),
                         KeyCode::Enter => app.state = AppState::SelectFieldInfo,
+                        KeyCode::Char('a') => app.state = AppState::AddRegister,
+                        _ => ()
+                    }
+                },
+                AppState::AddRegister => {
+                    match key.code {
+                        KeyCode::Char(ch) => {
+                            app.input.push(ch);
+                        },
+                        KeyCode::Backspace => {
+                            app.input.pop();
+                        },
+                        KeyCode::Esc => app.state = AppState::SelectRegisterAndField,
                         _ => ()
                     }
                 },
@@ -208,11 +222,17 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let block = Block::default().style(Style::default().bg(BG_COLOR).fg(Color::White));
     f.render_widget(block, size);
 
+    // We always draw these views no matter the app state
     draw_register_tabs(f, app, chunks[0]);
     draw_register_view(f, app, chunks[1]);
     
+    match app.state {
+        AppState::EditFieldInfo => draw_field_edit_popup(f, app, size),
+        AppState::AddRegister => draw_register_add_popup(f, app, size),
+        _ => (),
+    }
     if matches!(app.state, AppState::EditFieldInfo) {
-        draw_popup(f, app, size);
+        draw_field_edit_popup(f, app, size);
     }
 }
 
@@ -330,7 +350,7 @@ fn draw_field_info_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B:
     f.render_widget(tabs, area);
 }
 
-fn draw_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+fn draw_register_add_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
     let area = centered_rect(60, 20, area);
     let block = Block::default().title("Popup").borders(Borders::ALL);
     f.render_widget(Clear, area); //this clears out the background
@@ -344,12 +364,28 @@ fn draw_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
         .constraints([Constraint::Ratio(1, 2), Constraint::Length(1), Constraint::Ratio(1, 2)].as_ref())
         .split(area);
 
-    // let block = Block::default().style(Style::default().bg(Color::Red));
-    // f.render_widget(block, chunks[1]);
-    draw_input_prompt(f, app, chunks[1]);
+    draw_input_prompt(f, app, chunks[1], "PLACEMENT".to_string());
 }
 
-fn draw_input_prompt<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+fn draw_field_edit_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
+    let area = centered_rect(60, 20, area);
+    let block = Block::default().title("Popup").borders(Borders::ALL);
+    f.render_widget(Clear, area); //this clears out the background
+    f.render_widget(block, area);
+
+    // By making a vertical layout of 3 chunks with center chunk having defined length, we can
+    // center text
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .margin(1)
+        .constraints([Constraint::Ratio(1, 2), Constraint::Length(1), Constraint::Ratio(1, 2)].as_ref())
+        .split(area);
+
+    let (key, _value) = get_selected_field_as_string(app);
+    draw_input_prompt(f, app, chunks[1], format!("Set {} to: ", key));
+}
+
+fn draw_input_prompt<B>(f: &mut Frame<B>, app: &mut App, area: Rect, prompt: String) where B: Backend {
     // Splitting into 4 chunks, chunk 0 is the prompt, chunk 1 is the input, chunk 2 is the cursor,
     // and chunk 3 pushes cursor to end of prompt
     let chunks = Layout::default()
@@ -358,8 +394,7 @@ fn draw_input_prompt<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Ba
         .split(area);
 
     // Draw the prompt
-    let (key, _value) = get_selected_field_as_string(app);
-    let text = vec![Spans::from(format!("Set {} to: ", key))];
+    let text = vec![Spans::from(prompt)];
     let paragraph = Paragraph::new(text)
         .alignment(tui::layout::Alignment::Right).style(Style::default().bg(BG_COLOR).fg(Color::White));
     f.render_widget(paragraph, chunks[0]);
