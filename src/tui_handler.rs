@@ -29,6 +29,7 @@ pub struct App {
     pub original_path: String,
     pub register_family: RegisterFamily,
     pub register_index: usize,
+    pub register_info_index: usize,
     pub field_index: usize,
     pub field_info_index: usize,
     pub state: AppState,
@@ -41,6 +42,7 @@ impl App {
             original_path: path.clone(),
             register_family: pull_existing_json(&path),
             register_index: 0,
+            register_info_index: 0,
             field_index: 0,
             field_info_index: 0,
             state: AppState::SelectRegisterAndField,
@@ -95,6 +97,19 @@ impl App {
         } else {
             // 4 because there are 5 field info elements
             self.field_info_index = 4;
+        }
+    }
+
+    pub fn next_register_info(&mut self) {
+        // Mod 2 because there are 2 info elements for a register
+        self.register_info_index = (self.register_info_index + 1) % 2;
+    }
+
+    pub fn previous_register_info(&mut self) {
+        if self.register_info_index > 0 {
+            self.register_info_index -= 1;
+        } else {
+            self.register_info_index = 1;
         }
     }
 
@@ -171,6 +186,12 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                         KeyCode::Backspace => {
                             app.input.pop();
                         },
+                        KeyCode::Up => {
+                            app.previous_register_info();
+                        },
+                        KeyCode::Down => {
+                            app.next_register_info();
+                        },
                         KeyCode::Esc => app.state = AppState::SelectRegisterAndField,
                         _ => ()
                     }
@@ -215,7 +236,7 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(3)
-        .constraints([Constraint::Length(3), Constraint::Min(0)].as_ref())
+        .constraints([Constraint::Length(3), Constraint::Min(0), Constraint::Length(3)].as_ref())
         .split(size);
 
     // Full screen block I think
@@ -231,9 +252,29 @@ fn ui<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         AppState::AddRegister => draw_register_add_popup(f, app, size),
         _ => (),
     }
-    if matches!(app.state, AppState::EditFieldInfo) {
-        draw_field_edit_popup(f, app, size);
+
+    // Draw the input legend
+    let mut text = Vec::new();
+    match app.state {
+        AppState::SelectRegisterAndField => {
+            text.push(Spans::from("[Q]: Write and quit, [RIGHT]:Next register, [LEFT]: Previous register, [DOWN]: Next field, [UP]: Previous field, [ENTER]: Select field, [A]: Add register"));
+        }
+        AppState::SelectFieldInfo => {
+            text.push(Spans::from("[Q]: Write and quit, [DOWN]: Next field info, [UP]: Previous field info, [ENTER]: Edit field info, [ESC]: Go back"));
+        }
+        AppState::EditFieldInfo => {
+            text.push(Spans::from("[ENTER]: Set, [ESC]: Go back"));
+        }
+        AppState::AddRegister => {
+            text.push(Spans::from("[DOWN]: Next field, [UP]: Previous field, [ENTER]: Create register, [ESC]: Go back"));
+        }
     }
+
+    let paragraph = Paragraph::new(text)
+        .block(Block::default().borders(Borders::ALL).title("Controls").style(Style::default().bg(BG_COLOR)))
+        .style(Style::default().bg(BG_COLOR).fg(Color::White));
+    f.render_widget(Clear, chunks[2]);
+    f.render_widget(paragraph, chunks[2]);
 }
 
 fn draw_register_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
@@ -351,25 +392,35 @@ fn draw_field_info_tabs<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B:
 }
 
 fn draw_register_add_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
-    let area = centered_rect(60, 20, area);
-    let block = Block::default().title("Popup").borders(Borders::ALL);
+    let area = centered_rect(60, 50, area);
     f.render_widget(Clear, area); //this clears out the background
-    f.render_widget(block, area);
+
+    let titles = vec![
+        Spans::from("Name: "),
+        Spans::from("Size: ")];
+    let tabs = VerticalTabs::new(titles)
+        .block(Block::default().borders(Borders::ALL).title("Add Register"))
+        .select(app.field_info_index)
+        .style(Style::default().fg(Color::White))
+        .highlight_style(
+            Style::default()
+                .add_modifier(Modifier::BOLD)
+                .bg(if matches!(app.state, AppState::SelectFieldInfo) { Color::LightMagenta } else { Color::DarkGray }),
+        );
+    f.render_widget(tabs, area);
 
     // By making a vertical layout of 3 chunks with center chunk having defined length, we can
     // center text
-    let chunks = Layout::default()
+    let _chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
-        .constraints([Constraint::Ratio(1, 2), Constraint::Length(1), Constraint::Ratio(1, 2)].as_ref())
+        .constraints([Constraint::Ratio(1, 3), Constraint::Ratio(1, 3), Constraint::Ratio(1, 3)].as_ref())
         .split(area);
-
-    draw_input_prompt(f, app, chunks[1], "PLACEMENT".to_string());
 }
 
 fn draw_field_edit_popup<B>(f: &mut Frame<B>, app: &mut App, area: Rect) where B: Backend {
     let area = centered_rect(60, 20, area);
-    let block = Block::default().title("Popup").borders(Borders::ALL);
+    let block = Block::default().title("Edit Field").borders(Borders::ALL);
     f.render_widget(Clear, area); //this clears out the background
     f.render_widget(block, area);
 
