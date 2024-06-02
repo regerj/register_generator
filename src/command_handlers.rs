@@ -6,7 +6,8 @@ use crate::cli_structs::*;
 use crate::reg_gen::register::*;
 use crate::reg_gen::json_handling::*;
 use crate::reg_gen::header_handling::*;
-use crate::tui_handler::*;
+use crate::tui_handler::app_state::App;
+use crate::tui_handler::tui_root_handler::run_app;
 
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
