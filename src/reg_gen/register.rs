@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::{io::{self, Write}, collections::HashSet};
 
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +27,20 @@ pub struct RegisterFamily {
 }
 
 impl Register {
+    // Simple function to check if a register is valid
+    pub fn is_valid(&self) -> Result<(), String> {
+        if self.name.len() == 0 {
+            return Err(String::from("No name provided"));
+        }
+
+        let supported_register_widths: HashSet<u8> = HashSet::from([8, 16, 32, 64]);
+        if !supported_register_widths.contains(&self.size) {
+            return Err(String::from("No or invalid register width"));
+        }
+
+        Ok(())
+    }
+
     pub fn add_register_field(&mut self) {
         print!("Name: ");
         io::stdout().flush().unwrap();
